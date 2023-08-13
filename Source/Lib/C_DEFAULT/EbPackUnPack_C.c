@@ -23,7 +23,7 @@ void EB_ENC_msbPack2D(
     EB_U16   outPixel;
     EB_U8    nBitPixel;
 
-    //SIMD hint: use _mm_unpacklo_epi8 +_mm_unpackhi_epi8 to do the concatenation
+    //SIMD hint: use simde_mm_unpacklo_epi8 +simde_mm_unpackhi_epi8 to do the concatenation
 
     for (j = 0; j<height; j++)
     {

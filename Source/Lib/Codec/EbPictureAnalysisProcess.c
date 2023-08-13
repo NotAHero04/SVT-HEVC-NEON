@@ -968,7 +968,7 @@ static EB_U8  getFilteredTypes(EB_U8  *ptr,
 
         a =  (( (EB_U32)((a *2730) >> 14) + 1) >> 1) & 0xFFFF;
 
-        //fixed point version of a=a/12 to mimic x86 instruction _mm256_mulhrs_epi16;
+        //fixed point version of a=a/12 to mimic x86 instruction simde_mm256_mulhrs_epi16;
         //a= (a*2730)>>15;
 	}
 	else if (EbHevcFilterType == 2){

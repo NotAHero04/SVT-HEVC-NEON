@@ -370,10 +370,10 @@ EB_ERRORTYPE PmEstimateQuantCoeffLuma_SSE2(
 	EB_S32 lastSigYPos;
 
 
-	__m128i sigBits = _mm_setzero_si128();
-	__m128i cs0, cs1;
-	__m128i z0 = _mm_setzero_si128();
-	__m128i *sigBitsPtr;
+	simde__m128i sigBits = simde_mm_setzero_si128();
+	simde__m128i cs0, cs1;
+	simde__m128i z0 = simde_mm_setzero_si128();
+	simde__m128i *sigBitsPtr;
 
 	(void)(cabacEncodeCtxPtr);
 	(void)(type);
@@ -382,7 +382,7 @@ EB_ERRORTYPE PmEstimateQuantCoeffLuma_SSE2(
 	(void)componentType;
 	(void)size;
 	// Coefficients ordered according to scan order (absolute values)
-    __m128i linearCoeff[MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(__m128i) / sizeof(EB_U16))] = {{0}};
+    simde__m128i linearCoeff[MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(simde__m128i) / sizeof(EB_U16))] = {{0}};
 	EB_U16 *linearCoeffBufferPtr = (EB_U16 *)linearCoeff;
 	EB_U16 greaterThan1Map;
 
@@ -434,59 +434,59 @@ EB_ERRORTYPE PmEstimateQuantCoeffLuma_SSE2(
 
 	{
 
-		__m128i z1;
-		__m128i a0, a1, a2, a3;
-		__m128i b0, b1, c0, c1, d0, d1;
-		__m128i s0, s1;
+		simde__m128i z1;
+		simde__m128i a0, a1, a2, a3;
+		simde__m128i b0, b1, c0, c1, d0, d1;
+		simde__m128i s0, s1;
 
 		EB_S16 *subblockPtr;
 
 		// determine position of subblock within transform block
 		subblockPtr = coeffBufferPtr;
 
-		a0 = _mm_loadl_epi64((__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
-		a1 = _mm_loadl_epi64((__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
-		a2 = _mm_loadl_epi64((__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
-		a3 = _mm_loadl_epi64((__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
+		a0 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
+		a1 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
+		a2 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
+		a3 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
 
 		{
 			EB_S32 v03, v30;
 
-			b0 = _mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
-			b1 = _mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
+			b0 = simde_mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
+			b1 = simde_mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
 
-			c0 = _mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
-			c1 = _mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
+			c0 = simde_mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
+			c1 = simde_mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
 
-			v03 = _mm_extract_epi16(a0, 3);
-			v30 = _mm_extract_epi16(a3, 0);
+			v03 = simde_mm_extract_epi16(a0, 3);
+			v30 = simde_mm_extract_epi16(a3, 0);
 
-			d0 = _mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
-			d1 = _mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
+			d0 = simde_mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
+			d1 = simde_mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
 
-			d0 = _mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
-			d1 = _mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
+			d0 = simde_mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
+			d1 = simde_mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
 		}
 
 
 		//CHKN:  use abs
-		// Absolute value (note: _mm_abs_epi16 requires SSSE3)
-		s0 = _mm_srai_epi16(d0, 15);
-		s1 = _mm_srai_epi16(d1, 15);
-		d0 = _mm_sub_epi16(_mm_xor_si128(d0, s0), s0);
-		d1 = _mm_sub_epi16(_mm_xor_si128(d1, s1), s1);
+		// Absolute value (note: simde_mm_abs_epi16 requires SSSE3)
+		s0 = simde_mm_srai_epi16(d0, 15);
+		s1 = simde_mm_srai_epi16(d1, 15);
+		d0 = simde_mm_sub_epi16(simde_mm_xor_si128(d0, s0), s0);
+		d1 = simde_mm_sub_epi16(simde_mm_xor_si128(d1, s1), s1);
 
-		z0 = _mm_packs_epi16(d0, d1);
-		z1 = _mm_cmpgt_epi8(z0, _mm_set1_epi8(1));
-		z0 = _mm_cmpeq_epi8(z0, _mm_setzero_si128());
+		z0 = simde_mm_packs_epi16(d0, d1);
+		z1 = simde_mm_cmpgt_epi8(z0, simde_mm_set1_epi8(1));
+		z0 = simde_mm_cmpeq_epi8(z0, simde_mm_setzero_si128());
 
 
-		sigmap = _mm_movemask_epi8(z0) ^ 0xffff;
+		sigmap = simde_mm_movemask_epi8(z0) ^ 0xffff;
 
 		linearCoeff[0] = d0;
 		linearCoeff[1] = d1;
 
-		greaterThan1Map = (EB_U16)_mm_movemask_epi8(z1);
+		greaterThan1Map = (EB_U16)simde_mm_movemask_epi8(z1);
 
 	}
 
@@ -503,18 +503,18 @@ EB_ERRORTYPE PmEstimateQuantCoeffLuma_SSE2(
 	lastSigXPos = coeffGroupPosition & 3;
 
 	// Add cost of significance map
-	sigBitsPtr = (__m128i *)CabacCost->CabacBitsSigV[0];
-	cs0 = _mm_loadu_si128(sigBitsPtr);
-	cs1 = _mm_loadu_si128(sigBitsPtr + 1);
-	cs0 = _mm_xor_si128(cs0, _mm_and_si128(cs1, z0));
+	sigBitsPtr = (simde__m128i *)CabacCost->CabacBitsSigV[0];
+	cs0 = simde_mm_loadu_si128(sigBitsPtr);
+	cs1 = simde_mm_loadu_si128(sigBitsPtr + 1);
+	cs0 = simde_mm_xor_si128(cs0, simde_mm_and_si128(cs1, z0));
 
 	// Set bit count to zero for positions that are not coded
-	cs0 = _mm_and_si128(cs0, _mm_loadu_si128((__m128i *)(g_mask + 16 - posLast)));
+	cs0 = simde_mm_and_si128(cs0, simde_mm_loadu_si128((simde__m128i *)(g_mask + 16 - posLast)));
 
-	sigBits = _mm_add_epi64(sigBits, _mm_sad_epu8(cs0, _mm_setzero_si128()));
+	sigBits = simde_mm_add_epi64(sigBits, simde_mm_sad_epu8(cs0, simde_mm_setzero_si128()));
 	// Add significance bits
-	sigBits = _mm_add_epi32(sigBits, _mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
-	coeffBits += _mm_cvtsi128_si32(sigBits);
+	sigBits = simde_mm_add_epi32(sigBits, simde_mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
+	coeffBits += simde_mm_cvtsi128_si32(sigBits);
 
 
 	// Encode the position of last significant coefficient
@@ -663,16 +663,16 @@ EB_ERRORTYPE PmEstimateQuantCoeffChroma_SSE2(
 	(void)(intraChromaMode);
 	(void)componentType;
 	(void)size;
-	__m128i sigBits = _mm_setzero_si128();
-	__m128i cs0, cs1;
-	__m128i z0 = _mm_setzero_si128();
+	simde__m128i sigBits = simde_mm_setzero_si128();
+	simde__m128i cs0, cs1;
+	simde__m128i z0 = simde_mm_setzero_si128();
 	//EB_S32 sigCtx = 0;
 
-	__m128i *sigBitsPtr;
+	simde__m128i *sigBitsPtr;
 
 
 	// Coefficients ordered according to scan order (absolute values)
-    __m128i linearCoeff[MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(__m128i) / sizeof(EB_U16))] = {{0}};
+    simde__m128i linearCoeff[MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(simde__m128i) / sizeof(EB_U16))] = {{0}};
 	EB_U16 *linearCoeffBufferPtr = (EB_U16 *)linearCoeff;
 
 	EB_U16 greaterThan1Map;
@@ -740,61 +740,61 @@ EB_ERRORTYPE PmEstimateQuantCoeffChroma_SSE2(
 	{
 
 
-		__m128i z1;
-		//		__m128i z2;
-		__m128i a0, a1, a2, a3;
-		__m128i b0, b1, c0, c1, d0, d1;
-		__m128i s0, s1;
+		simde__m128i z1;
+		//		simde__m128i z2;
+		simde__m128i a0, a1, a2, a3;
+		simde__m128i b0, b1, c0, c1, d0, d1;
+		simde__m128i s0, s1;
 
 		EB_S16 *subblockPtr;
 
 		// determine position of subblock within transform block
 		subblockPtr = coeffBufferPtr;
 
-		a0 = _mm_loadl_epi64((__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
-		a1 = _mm_loadl_epi64((__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
-		a2 = _mm_loadl_epi64((__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
-		a3 = _mm_loadl_epi64((__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
+		a0 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
+		a1 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
+		a2 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
+		a3 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
 
 		{
 			EB_S32 v03, v30;
 
-			b0 = _mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
-			b1 = _mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
+			b0 = simde_mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
+			b1 = simde_mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
 
-			c0 = _mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
-			c1 = _mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
+			c0 = simde_mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
+			c1 = simde_mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
 
-			v03 = _mm_extract_epi16(a0, 3);
-			v30 = _mm_extract_epi16(a3, 0);
+			v03 = simde_mm_extract_epi16(a0, 3);
+			v30 = simde_mm_extract_epi16(a3, 0);
 
-			d0 = _mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
-			d1 = _mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
+			d0 = simde_mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
+			d1 = simde_mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
 
-			d0 = _mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
-			d1 = _mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
+			d0 = simde_mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
+			d1 = simde_mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
 		}
 
 
 
 		//CHKN:  use abs
-		// Absolute value (note: _mm_abs_epi16 requires SSSE3)
-		s0 = _mm_srai_epi16(d0, 15);
-		s1 = _mm_srai_epi16(d1, 15);
-		d0 = _mm_sub_epi16(_mm_xor_si128(d0, s0), s0);
-		d1 = _mm_sub_epi16(_mm_xor_si128(d1, s1), s1);
+		// Absolute value (note: simde_mm_abs_epi16 requires SSSE3)
+		s0 = simde_mm_srai_epi16(d0, 15);
+		s1 = simde_mm_srai_epi16(d1, 15);
+		d0 = simde_mm_sub_epi16(simde_mm_xor_si128(d0, s0), s0);
+		d1 = simde_mm_sub_epi16(simde_mm_xor_si128(d1, s1), s1);
 
-		z0 = _mm_packs_epi16(d0, d1);
-		z1 = _mm_cmpgt_epi8(z0, _mm_set1_epi8(1));
-		z0 = _mm_cmpeq_epi8(z0, _mm_setzero_si128());
+		z0 = simde_mm_packs_epi16(d0, d1);
+		z1 = simde_mm_cmpgt_epi8(z0, simde_mm_set1_epi8(1));
+		z0 = simde_mm_cmpeq_epi8(z0, simde_mm_setzero_si128());
 
 
-		sigmap = _mm_movemask_epi8(z0) ^ 0xffff;
+		sigmap = simde_mm_movemask_epi8(z0) ^ 0xffff;
 
 		linearCoeff[0] = d0;
 		linearCoeff[1] = d1;
 
-		greaterThan1Map = (EB_U16)_mm_movemask_epi8(z1);
+		greaterThan1Map = (EB_U16)simde_mm_movemask_epi8(z1);
 
 	}
 
@@ -811,18 +811,18 @@ EB_ERRORTYPE PmEstimateQuantCoeffChroma_SSE2(
 	lastSigXPos = coeffGroupPosition & 3;
 
 	// Add cost of significance map
-	sigBitsPtr = (__m128i *)CabacCost->CabacBitsSigV[6];
-	cs0 = _mm_loadu_si128(sigBitsPtr);
-	cs1 = _mm_loadu_si128(sigBitsPtr + 1);
-	cs0 = _mm_xor_si128(cs0, _mm_and_si128(cs1, z0));
+	sigBitsPtr = (simde__m128i *)CabacCost->CabacBitsSigV[6];
+	cs0 = simde_mm_loadu_si128(sigBitsPtr);
+	cs1 = simde_mm_loadu_si128(sigBitsPtr + 1);
+	cs0 = simde_mm_xor_si128(cs0, simde_mm_and_si128(cs1, z0));
 
 	// Set bit count to zero for positions that are not coded
-	cs0 = _mm_and_si128(cs0, _mm_loadu_si128((__m128i *)(g_mask + 16 - posLast)));
+	cs0 = simde_mm_and_si128(cs0, simde_mm_loadu_si128((simde__m128i *)(g_mask + 16 - posLast)));
 
-	sigBits = _mm_add_epi64(sigBits, _mm_sad_epu8(cs0, _mm_setzero_si128()));
+	sigBits = simde_mm_add_epi64(sigBits, simde_mm_sad_epu8(cs0, simde_mm_setzero_si128()));
 	// Add significance bits
-	sigBits = _mm_add_epi32(sigBits, _mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
-	coeffBits += _mm_cvtsi128_si32(sigBits);
+	sigBits = simde_mm_add_epi32(sigBits, simde_mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
+	coeffBits += simde_mm_cvtsi128_si32(sigBits);
 
 
 	// Encode the position of last significant coefficient	
@@ -987,15 +987,15 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
   EB_U32 contextOffset1;
   
 
-  __m128i sigBits = _mm_setzero_si128();
-  __m128i cs0, cs1;
-  __m128i z0 = _mm_setzero_si128();
+  simde__m128i sigBits = simde_mm_setzero_si128();
+  simde__m128i cs0, cs1;
+  simde__m128i z0 = simde_mm_setzero_si128();
   EB_S32 sigCtx = 0;
   EB_U8 nnz[ MAX_TU_SIZE * MAX_TU_SIZE / (4 * 4) ];
-  __m128i *sigBitsPtr;
+  simde__m128i *sigBitsPtr;
   
   // Coefficients ordered according to scan order (absolute values)
-  __m128i linearCoeff[ MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(__m128i) / sizeof(EB_U16)) ];
+  simde__m128i linearCoeff[ MAX_TU_SIZE * MAX_TU_SIZE / (sizeof(simde__m128i) / sizeof(EB_U16)) ];
   EB_U16 *linearCoeffBufferPtr = (EB_U16 *)linearCoeff;
   EB_U16 greaterThan1Map[ MAX_TU_SIZE * MAX_TU_SIZE / (4 * 4) ] ={0};
   
@@ -1097,11 +1097,11 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
   subSetIndex = 0;
   while (1)
   {
-    __m128i z1;
-    __m128i z2;
-    __m128i a0, a1, a2, a3;
-    __m128i b0, b1, c0, c1, d0, d1;
-    __m128i s0, s1;
+    simde__m128i z1;
+    simde__m128i z2;
+    simde__m128i a0, a1, a2, a3;
+    simde__m128i b0, b1, c0, c1, d0, d1;
+    simde__m128i s0, s1;
     EB_S32 sigmap;
     EB_S16 *subblockPtr;
     
@@ -1118,54 +1118,54 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
     
     /*EB_S16 **/subblockPtr = coeffBufferPtr + 4 * coeffGroupPositionY * coeffStride + 4 * coeffGroupPositionX;
     
-    a0 = _mm_loadl_epi64((__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
-    a1 = _mm_loadl_epi64((__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
-    a2 = _mm_loadl_epi64((__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
-    a3 = _mm_loadl_epi64((__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
+    a0 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 0 * coeffStride)); // 00 01 02 03 -- -- -- --
+    a1 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 1 * coeffStride)); // 10 11 12 13 -- -- -- --
+    a2 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 2 * coeffStride)); // 20 21 22 23 -- -- -- --
+    a3 = simde_mm_loadl_epi64((simde__m128i *)(subblockPtr + 3 * coeffStride)); // 30 31 32 33 -- -- -- --
     
     if (scanIndex == SCAN_DIAG2)
     {
       EB_S32 v03, v30;
       
-      b0 = _mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
-      b1 = _mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
+      b0 = simde_mm_unpacklo_epi64(a0, a3); // 00 01 02 03 30 31 32 33
+      b1 = simde_mm_unpacklo_epi16(a1, a2); // 10 20 11 21 12 22 13 23
       
-      c0 = _mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
-      c1 = _mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
+      c0 = simde_mm_unpacklo_epi16(b0, b1); // 00 10 01 20 02 11 03 21
+      c1 = simde_mm_unpackhi_epi16(b1, b0); // 12 30 22 31 13 32 23 33
       
-      v03 = _mm_extract_epi16(a0, 3);
-      v30 = _mm_extract_epi16(a3, 0);
+      v03 = simde_mm_extract_epi16(a0, 3);
+      v30 = simde_mm_extract_epi16(a3, 0);
       
-      d0 = _mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
-      d1 = _mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
+      d0 = simde_mm_shufflehi_epi16(c0, 0xe1); // 00 10 01 20 11 02 03 21
+      d1 = simde_mm_shufflelo_epi16(c1, 0xb4); // 12 30 31 22 13 32 23 33
       
-      d0 = _mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
-      d1 = _mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
+      d0 = simde_mm_insert_epi16(d0, v30, 6); // 00 10 01 20 11 02 30 21
+      d1 = simde_mm_insert_epi16(d1, v03, 1); // 12 03 31 22 13 32 23 33
     }
     else if (scanIndex == SCAN_HOR2)
     {
-      d0 = _mm_unpacklo_epi64(a0, a1); // 00 01 02 03 10 11 12 13
-      d1 = _mm_unpacklo_epi64(a2, a3); // 20 21 22 23 30 31 32 33
+      d0 = simde_mm_unpacklo_epi64(a0, a1); // 00 01 02 03 10 11 12 13
+      d1 = simde_mm_unpacklo_epi64(a2, a3); // 20 21 22 23 30 31 32 33
     }
     else
     {
-      b0 = _mm_unpacklo_epi16(a0, a2); // 00 20 01 21 02 22 03 23
-      b1 = _mm_unpacklo_epi16(a1, a3); // 10 30 11 31 12 32 13 33
+      b0 = simde_mm_unpacklo_epi16(a0, a2); // 00 20 01 21 02 22 03 23
+      b1 = simde_mm_unpacklo_epi16(a1, a3); // 10 30 11 31 12 32 13 33
       
-      d0 = _mm_unpacklo_epi16(b0, b1); // 00 10 20 30 01 11 21 31
-      d1 = _mm_unpackhi_epi16(b0, b1); // 02 12 22 32 03 13 23 33
+      d0 = simde_mm_unpacklo_epi16(b0, b1); // 00 10 20 30 01 11 21 31
+      d1 = simde_mm_unpackhi_epi16(b0, b1); // 02 12 22 32 03 13 23 33
     }
     
-    // Absolute value (note: _mm_abs_epi16 requires SSSE3)
-    s0 = _mm_srai_epi16(d0, 15);
-    s1 = _mm_srai_epi16(d1, 15);
-    d0 = _mm_sub_epi16(_mm_xor_si128(d0, s0), s0);
-    d1 = _mm_sub_epi16(_mm_xor_si128(d1, s1), s1);
-    z0 = _mm_packs_epi16(d0, d1);
-    z1 = _mm_cmpgt_epi8(z0, _mm_set1_epi8(1));
-    z0 = _mm_cmpeq_epi8(z0, _mm_setzero_si128());
+    // Absolute value (note: simde_mm_abs_epi16 requires SSSE3)
+    s0 = simde_mm_srai_epi16(d0, 15);
+    s1 = simde_mm_srai_epi16(d1, 15);
+    d0 = simde_mm_sub_epi16(simde_mm_xor_si128(d0, s0), s0);
+    d1 = simde_mm_sub_epi16(simde_mm_xor_si128(d1, s1), s1);
+    z0 = simde_mm_packs_epi16(d0, d1);
+    z1 = simde_mm_cmpgt_epi8(z0, simde_mm_set1_epi8(1));
+    z0 = simde_mm_cmpeq_epi8(z0, simde_mm_setzero_si128());
     
-    sigmap = _mm_movemask_epi8(z0) ^ 0xffff;
+    sigmap = simde_mm_movemask_epi8(z0) ^ 0xffff;
     subblockSigmap[ subSetIndex ] = (EB_U16)sigmap;
     
     if (sigmap != 0)
@@ -1176,14 +1176,14 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
       linearCoeff[ 2 * subSetIndex + 0 ] = d0;
       linearCoeff[ 2 * subSetIndex + 1 ] = d1;
       
-      greaterThan1Map[ subSetIndex ] = (EB_U16) _mm_movemask_epi8(z1);
+      greaterThan1Map[ subSetIndex ] = (EB_U16) simde_mm_movemask_epi8(z1);
       
       // Count number of bits set in sigmap (Hamming weight)
-      z2 = _mm_sad_epu8(z0, _mm_setzero_si128());
+      z2 = simde_mm_sad_epu8(z0, simde_mm_setzero_si128());
       
       num = 16;
-      num += _mm_cvtsi128_si32(z2);
-      num += _mm_extract_epi16(z2, 4);
+      num += simde_mm_cvtsi128_si32(z2);
+      num += simde_mm_extract_epi16(z2, 4);
       // num is 255*(16-numCoeff) or 256*16-16-256*numCoeff+numCoeff
       num &= 0x1f;
       nnz[subSetIndex] = (EB_U8) num;
@@ -1201,15 +1201,15 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
     if (sigmap != 0 || subSetIndex == 0)
     {
       // Add cost of significance map
-      sigBitsPtr = (__m128i *)CabacCost->CabacBitsSigV[sigCtx];
-      cs0 = _mm_loadu_si128(sigBitsPtr);
-      cs1 = _mm_loadu_si128(sigBitsPtr+1);
-      cs0 = _mm_xor_si128(cs0, _mm_and_si128(cs1, z0));
+      sigBitsPtr = (simde__m128i *)CabacCost->CabacBitsSigV[sigCtx];
+      cs0 = simde_mm_loadu_si128(sigBitsPtr);
+      cs1 = simde_mm_loadu_si128(sigBitsPtr+1);
+      cs0 = simde_mm_xor_si128(cs0, simde_mm_and_si128(cs1, z0));
       if (sigmap == 1 && subSetIndex != 0)
       {
-        cs0 = _mm_and_si128(cs0, _mm_setr_epi8(0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1));
+        cs0 = simde_mm_and_si128(cs0, simde_mm_setr_epi8(0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1));
       }
-      sigBits = _mm_add_epi64(sigBits, _mm_sad_epu8(cs0, _mm_setzero_si128()));
+      sigBits = simde_mm_add_epi64(sigBits, simde_mm_sad_epu8(cs0, simde_mm_setzero_si128()));
     }
     sigCtx |= 2; // differentiate between first and other blocks because of DC
     subSetIndex++;
@@ -1236,18 +1236,18 @@ EB_ERRORTYPE EstimateQuantizedCoefficients_Lossy_SSE2(
   scanPosLast += posLast;
   
   // Add cost of significance map
-  sigBitsPtr = (__m128i *)CabacCost->CabacBitsSigV[sigCtx];
-  cs0 = _mm_loadu_si128(sigBitsPtr);
-  cs1 = _mm_loadu_si128(sigBitsPtr+1);
-  cs0 = _mm_xor_si128(cs0, _mm_and_si128(cs1, z0));
+  sigBitsPtr = (simde__m128i *)CabacCost->CabacBitsSigV[sigCtx];
+  cs0 = simde_mm_loadu_si128(sigBitsPtr);
+  cs1 = simde_mm_loadu_si128(sigBitsPtr+1);
+  cs0 = simde_mm_xor_si128(cs0, simde_mm_and_si128(cs1, z0));
   
   // Set bit count to zero for positions that are not coded
-  cs0 = _mm_and_si128(cs0, _mm_loadu_si128((__m128i *)(g_mask+16-posLast)));
+  cs0 = simde_mm_and_si128(cs0, simde_mm_loadu_si128((simde__m128i *)(g_mask+16-posLast)));
   
-  sigBits = _mm_add_epi64(sigBits, _mm_sad_epu8(cs0, _mm_setzero_si128()));
+  sigBits = simde_mm_add_epi64(sigBits, simde_mm_sad_epu8(cs0, simde_mm_setzero_si128()));
   // Add significance bits
-  sigBits = _mm_add_epi32(sigBits, _mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
-  coeffBits += _mm_cvtsi128_si32(sigBits);
+  sigBits = simde_mm_add_epi32(sigBits, simde_mm_shuffle_epi32(sigBits, 0x4e)); // 01001110
+  coeffBits += simde_mm_cvtsi128_si32(sigBits);
   
   // Should swap row/col for SCAN_HOR and SCAN_VER:
   // - SCAN_HOR because the subscan order is mirrored (compared to SCAN_DIAG)

@@ -734,7 +734,7 @@ void* MotionEstimationKernel(void *inputPtr)
                     for (i = 0; i < lcuHeight; i++)
                     {
                         char const* p = (char const*)(srcPtr + i*inputPaddedPicturePtr->strideY);
-                        _mm_prefetch(p, _MM_HINT_T2);
+                        simde_mm_prefetch(p, _MM_HINT_T2);
                     }
 
 

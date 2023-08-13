@@ -6,8 +6,7 @@
 #include "EbTransforms_AVX2.h"
 #include "EbDefinitions.h"
 
-#include <emmintrin.h>
-#include <immintrin.h>
+#include "../../../simde/simde/x86/avx2.h"
 
 // Coefficients for forward 16/32-point transform
 #ifdef __GNUC__
@@ -60,92 +59,92 @@ void QuantizeInvQuantizeNxN_AVX2_INTRIN(
     EB_U32          *nonzerocoeff)
 {
     unsigned row, col;
-    __m128i q = _mm_set1_epi16((EB_S16)qFunc);
-    __m128i o = _mm_set1_epi32(q_offset);
-    __m128i s = _mm_cvtsi32_si128(shiftedQBits);
-    __m128i iq = _mm_set1_epi16((EB_S16)shiftedFFunc);
-    __m128i io = _mm_set1_epi32(iq_offset);
-    __m128i is = _mm_cvtsi32_si128(shiftNum);
-    __m256i z = _mm256_setzero_si256();
-    __m256i qq = _mm256_insertf128_si256(_mm256_castsi128_si256(q), q, 0x1);
-    __m256i oo = _mm256_insertf128_si256(_mm256_castsi128_si256(o), o, 0x1);
-    __m256i iqq = _mm256_insertf128_si256(_mm256_castsi128_si256(iq), iq, 0x1);
-    __m256i ioo = _mm256_insertf128_si256(_mm256_castsi128_si256(io), io, 0x1);
+    simde__m128i q = simde_mm_set1_epi16((EB_S16)qFunc);
+    simde__m128i o = simde_mm_set1_epi32(q_offset);
+    simde__m128i s = simde_mm_cvtsi32_si128(shiftedQBits);
+    simde__m128i iq = simde_mm_set1_epi16((EB_S16)shiftedFFunc);
+    simde__m128i io = simde_mm_set1_epi32(iq_offset);
+    simde__m128i is = simde_mm_cvtsi32_si128(shiftNum);
+    simde__m256i z = simde_mm256_setzero_si256();
+    simde__m256i qq = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(q), q, 0x1);
+    simde__m256i oo = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(o), o, 0x1);
+    simde__m256i iqq = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(iq), iq, 0x1);
+    simde__m256i ioo = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(io), io, 0x1);
 
     if (areaSize == 4) {
-        __m128i a, b;
-        __m256i a0, a1, b0, b1, x;
-        __m256i y = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)coeff), _mm_loadl_epi64((__m128i*)(coeff + coeffStride)))),
-            _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)(coeff + 2 * coeffStride)), _mm_loadl_epi64((__m128i*)(coeff + 3 * coeffStride))), 0x1);
+        simde__m128i a, b;
+        simde__m256i a0, a1, b0, b1, x;
+        simde__m256i y = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)coeff), simde_mm_loadl_epi64((simde__m128i*)(coeff + coeffStride)))),
+            simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)(coeff + 2 * coeffStride)), simde_mm_loadl_epi64((simde__m128i*)(coeff + 3 * coeffStride))), 0x1);
 
-        x = _mm256_abs_epi16(y);
-        a0 = _mm256_mullo_epi16(x, qq);
-        a1 = _mm256_mulhi_epi16(x, qq);
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b0 = _mm256_add_epi32(b0, oo);
-        b1 = _mm256_add_epi32(b1, oo);
-        b0 = _mm256_sra_epi32(b0, s);
-        b1 = _mm256_sra_epi32(b1, s);
-        x = _mm256_packs_epi32(b0, b1);
-        z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(x, _mm256_setzero_si256()));
-        x = _mm256_sign_epi16(x, y);
-        a = _mm256_extracti128_si256(x, 0);
-        b = _mm256_extracti128_si256(x, 1);
-        _mm_storel_epi64((__m128i *)quantCoeff, a);
-        _mm_storel_epi64((__m128i *)(quantCoeff + coeffStride), _mm_srli_si128(a, 8));
-        _mm_storel_epi64((__m128i *)(quantCoeff + 2 * coeffStride), b);
-        _mm_storel_epi64((__m128i *)(quantCoeff + 3 * coeffStride), _mm_srli_si128(b, 8));
+        x = simde_mm256_abs_epi16(y);
+        a0 = simde_mm256_mullo_epi16(x, qq);
+        a1 = simde_mm256_mulhi_epi16(x, qq);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b0 = simde_mm256_add_epi32(b0, oo);
+        b1 = simde_mm256_add_epi32(b1, oo);
+        b0 = simde_mm256_sra_epi32(b0, s);
+        b1 = simde_mm256_sra_epi32(b1, s);
+        x = simde_mm256_packs_epi32(b0, b1);
+        z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(x, simde_mm256_setzero_si256()));
+        x = simde_mm256_sign_epi16(x, y);
+        a = simde_mm256_extracti128_si256(x, 0);
+        b = simde_mm256_extracti128_si256(x, 1);
+        simde_mm_storel_epi64((simde__m128i *)quantCoeff, a);
+        simde_mm_storel_epi64((simde__m128i *)(quantCoeff + coeffStride), simde_mm_srli_si128(a, 8));
+        simde_mm_storel_epi64((simde__m128i *)(quantCoeff + 2 * coeffStride), b);
+        simde_mm_storel_epi64((simde__m128i *)(quantCoeff + 3 * coeffStride), simde_mm_srli_si128(b, 8));
 
-        a0 = _mm256_mullo_epi16(x, iqq);
-        a1 = _mm256_mulhi_epi16(x, iqq);
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b0 = _mm256_add_epi32(b0, ioo);
-        b1 = _mm256_add_epi32(b1, ioo);
-        b0 = _mm256_sra_epi32(b0, is);
-        b1 = _mm256_sra_epi32(b1, is);
-        x = _mm256_packs_epi32(b0, b1);
-        a = _mm256_extracti128_si256(x, 0);
-        b = _mm256_extracti128_si256(x, 1);
-        _mm_storel_epi64((__m128i *)reconCoeff, a);
-        _mm_storel_epi64((__m128i *)(reconCoeff + coeffStride), _mm_srli_si128(a, 8));
-        _mm_storel_epi64((__m128i *)(reconCoeff + 2 * coeffStride), b);
-        _mm_storel_epi64((__m128i *)(reconCoeff + 3 * coeffStride), _mm_srli_si128(b, 8));
+        a0 = simde_mm256_mullo_epi16(x, iqq);
+        a1 = simde_mm256_mulhi_epi16(x, iqq);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b0 = simde_mm256_add_epi32(b0, ioo);
+        b1 = simde_mm256_add_epi32(b1, ioo);
+        b0 = simde_mm256_sra_epi32(b0, is);
+        b1 = simde_mm256_sra_epi32(b1, is);
+        x = simde_mm256_packs_epi32(b0, b1);
+        a = simde_mm256_extracti128_si256(x, 0);
+        b = simde_mm256_extracti128_si256(x, 1);
+        simde_mm_storel_epi64((simde__m128i *)reconCoeff, a);
+        simde_mm_storel_epi64((simde__m128i *)(reconCoeff + coeffStride), simde_mm_srli_si128(a, 8));
+        simde_mm_storel_epi64((simde__m128i *)(reconCoeff + 2 * coeffStride), b);
+        simde_mm_storel_epi64((simde__m128i *)(reconCoeff + 3 * coeffStride), simde_mm_srli_si128(b, 8));
     }
     else if (areaSize == 8) {
         row = 0;
         do {
-            __m256i a0, a1, b0, b1, x;
-            __m256i y = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(coeff + coeffStride*row))),
-                _mm_loadu_si128((__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
+            simde__m256i a0, a1, b0, b1, x;
+            simde__m256i y = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*row))),
+                simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
 
-            x = _mm256_abs_epi16(y);
-            a0 = _mm256_mullo_epi16(x, qq);
-            a1 = _mm256_mulhi_epi16(x, qq);
-            b0 = _mm256_unpacklo_epi16(a0, a1);
-            b1 = _mm256_unpackhi_epi16(a0, a1);
-            b0 = _mm256_add_epi32(b0, oo);
-            b1 = _mm256_add_epi32(b1, oo);
-            b0 = _mm256_sra_epi32(b0, s);
-            b1 = _mm256_sra_epi32(b1, s);
-            x = _mm256_packs_epi32(b0, b1);
-            z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(x, _mm256_setzero_si256()));
-            x = _mm256_sign_epi16(x, y);
-            _mm_storeu_si128((__m128i *)(quantCoeff + coeffStride*row), _mm256_extracti128_si256(x, 0));
-            _mm_storeu_si128((__m128i *)(quantCoeff + coeffStride*(row + 1)), _mm256_extracti128_si256(x, 1));
+            x = simde_mm256_abs_epi16(y);
+            a0 = simde_mm256_mullo_epi16(x, qq);
+            a1 = simde_mm256_mulhi_epi16(x, qq);
+            b0 = simde_mm256_unpacklo_epi16(a0, a1);
+            b1 = simde_mm256_unpackhi_epi16(a0, a1);
+            b0 = simde_mm256_add_epi32(b0, oo);
+            b1 = simde_mm256_add_epi32(b1, oo);
+            b0 = simde_mm256_sra_epi32(b0, s);
+            b1 = simde_mm256_sra_epi32(b1, s);
+            x = simde_mm256_packs_epi32(b0, b1);
+            z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(x, simde_mm256_setzero_si256()));
+            x = simde_mm256_sign_epi16(x, y);
+            simde_mm_storeu_si128((simde__m128i *)(quantCoeff + coeffStride*row), simde_mm256_extracti128_si256(x, 0));
+            simde_mm_storeu_si128((simde__m128i *)(quantCoeff + coeffStride*(row + 1)), simde_mm256_extracti128_si256(x, 1));
 
-            a0 = _mm256_mullo_epi16(x, iqq);
-            a1 = _mm256_mulhi_epi16(x, iqq);
-            b0 = _mm256_unpacklo_epi16(a0, a1);
-            b1 = _mm256_unpackhi_epi16(a0, a1);
-            b0 = _mm256_add_epi32(b0, ioo);
-            b1 = _mm256_add_epi32(b1, ioo);
-            b0 = _mm256_sra_epi32(b0, is);
-            b1 = _mm256_sra_epi32(b1, is);
-            x = _mm256_packs_epi32(b0, b1);
-            _mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*row), _mm256_extracti128_si256(x, 0));
-            _mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*(row + 1)), _mm256_extracti128_si256(x, 1));
+            a0 = simde_mm256_mullo_epi16(x, iqq);
+            a1 = simde_mm256_mulhi_epi16(x, iqq);
+            b0 = simde_mm256_unpacklo_epi16(a0, a1);
+            b1 = simde_mm256_unpackhi_epi16(a0, a1);
+            b0 = simde_mm256_add_epi32(b0, ioo);
+            b1 = simde_mm256_add_epi32(b1, ioo);
+            b0 = simde_mm256_sra_epi32(b0, is);
+            b1 = simde_mm256_sra_epi32(b1, is);
+            x = simde_mm256_packs_epi32(b0, b1);
+            simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*row), simde_mm256_extracti128_si256(x, 0));
+            simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*(row + 1)), simde_mm256_extracti128_si256(x, 1));
 
             row += 2;
         } while (row < areaSize);
@@ -155,41 +154,41 @@ void QuantizeInvQuantizeNxN_AVX2_INTRIN(
         do {
             col = 0;
             do {
-                __m256i a0, a1, b0, b1, x;
-                __m256i y = _mm256_loadu_si256((__m256i *)(coeff + coeffStride*row + col));
+                simde__m256i a0, a1, b0, b1, x;
+                simde__m256i y = simde_mm256_loadu_si256((simde__m256i *)(coeff + coeffStride*row + col));
 
-                x = _mm256_abs_epi16(y);
-                a0 = _mm256_mullo_epi16(x, qq);
-                a1 = _mm256_mulhi_epi16(x, qq);
-                b0 = _mm256_unpacklo_epi16(a0, a1);
-                b1 = _mm256_unpackhi_epi16(a0, a1);
-                b0 = _mm256_add_epi32(b0, oo);
-                b1 = _mm256_add_epi32(b1, oo);
-                b0 = _mm256_sra_epi32(b0, s);
-                b1 = _mm256_sra_epi32(b1, s);
-                x = _mm256_packs_epi32(b0, b1);
-                z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(x, _mm256_setzero_si256()));
-                x = _mm256_sign_epi16(x, y);
-                _mm256_storeu_si256((__m256i *)(quantCoeff + coeffStride*row + col), x);
-				__m256i zer = _mm256_setzero_si256();
-				__m256i cmp = _mm256_cmpeq_epi16(x, zer);
-				int msk = _mm256_movemask_epi8(cmp);
+                x = simde_mm256_abs_epi16(y);
+                a0 = simde_mm256_mullo_epi16(x, qq);
+                a1 = simde_mm256_mulhi_epi16(x, qq);
+                b0 = simde_mm256_unpacklo_epi16(a0, a1);
+                b1 = simde_mm256_unpackhi_epi16(a0, a1);
+                b0 = simde_mm256_add_epi32(b0, oo);
+                b1 = simde_mm256_add_epi32(b1, oo);
+                b0 = simde_mm256_sra_epi32(b0, s);
+                b1 = simde_mm256_sra_epi32(b1, s);
+                x = simde_mm256_packs_epi32(b0, b1);
+                z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(x, simde_mm256_setzero_si256()));
+                x = simde_mm256_sign_epi16(x, y);
+                simde_mm256_storeu_si256((simde__m256i *)(quantCoeff + coeffStride*row + col), x);
+				simde__m256i zer = simde_mm256_setzero_si256();
+				simde__m256i cmp = simde_mm256_cmpeq_epi16(x, zer);
+				int msk = simde_mm256_movemask_epi8(cmp);
 
 				if ((EB_U32)msk != 0xFFFFFFFF)
 				{
-                a0 = _mm256_mullo_epi16(x, iqq);
-                a1 = _mm256_mulhi_epi16(x, iqq);
-                b0 = _mm256_unpacklo_epi16(a0, a1);
-                b1 = _mm256_unpackhi_epi16(a0, a1);
-                b0 = _mm256_add_epi32(b0, ioo);
-                b1 = _mm256_add_epi32(b1, ioo);
-                b0 = _mm256_sra_epi32(b0, is);
-                b1 = _mm256_sra_epi32(b1, is);
-                x = _mm256_packs_epi32(b0, b1);
-                _mm256_storeu_si256((__m256i *)(reconCoeff + coeffStride*row + col), x);
+                a0 = simde_mm256_mullo_epi16(x, iqq);
+                a1 = simde_mm256_mulhi_epi16(x, iqq);
+                b0 = simde_mm256_unpacklo_epi16(a0, a1);
+                b1 = simde_mm256_unpackhi_epi16(a0, a1);
+                b0 = simde_mm256_add_epi32(b0, ioo);
+                b1 = simde_mm256_add_epi32(b1, ioo);
+                b0 = simde_mm256_sra_epi32(b0, is);
+                b1 = simde_mm256_sra_epi32(b1, is);
+                x = simde_mm256_packs_epi32(b0, b1);
+                simde_mm256_storeu_si256((simde__m256i *)(reconCoeff + coeffStride*row + col), x);
 				}
 				else{
-					_mm256_storeu_si256((__m256i *)(reconCoeff + coeffStride*row + col), zer);
+					simde_mm256_storeu_si256((simde__m256i *)(reconCoeff + coeffStride*row + col), zer);
 				}
                 col += 16;
             } while (col < areaSize);
@@ -198,8 +197,8 @@ void QuantizeInvQuantizeNxN_AVX2_INTRIN(
         } while (row < areaSize);
     }
 
-    z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 7));
-    *nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+    z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 7));
+    *nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 
 }
 
@@ -218,66 +217,66 @@ void QuantizeInvQuantize8x8_AVX2_INTRIN(
     EB_U32          *nonzerocoeff)
 {
     unsigned row;
-    __m128i q = _mm_set1_epi16((EB_S16)qFunc);
-    __m128i o = _mm_set1_epi32(q_offset);
-    __m128i s = _mm_cvtsi32_si128(shiftedQBits);
-    __m128i iq = _mm_set1_epi16((EB_S16)shiftedFFunc);
-    __m128i io = _mm_set1_epi32(iq_offset);
-    __m128i is = _mm_cvtsi32_si128(shiftNum);
-    __m256i z = _mm256_setzero_si256();
-    __m256i qq = _mm256_insertf128_si256(_mm256_castsi128_si256(q), q, 0x1);
-    __m256i oo = _mm256_insertf128_si256(_mm256_castsi128_si256(o), o, 0x1);
-    __m256i iqq = _mm256_insertf128_si256(_mm256_castsi128_si256(iq), iq, 0x1);
-    __m256i ioo = _mm256_insertf128_si256(_mm256_castsi128_si256(io), io, 0x1);
+    simde__m128i q = simde_mm_set1_epi16((EB_S16)qFunc);
+    simde__m128i o = simde_mm_set1_epi32(q_offset);
+    simde__m128i s = simde_mm_cvtsi32_si128(shiftedQBits);
+    simde__m128i iq = simde_mm_set1_epi16((EB_S16)shiftedFFunc);
+    simde__m128i io = simde_mm_set1_epi32(iq_offset);
+    simde__m128i is = simde_mm_cvtsi32_si128(shiftNum);
+    simde__m256i z = simde_mm256_setzero_si256();
+    simde__m256i qq = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(q), q, 0x1);
+    simde__m256i oo = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(o), o, 0x1);
+    simde__m256i iqq = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(iq), iq, 0x1);
+    simde__m256i ioo = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(io), io, 0x1);
 
     (void)areaSize;
 
     row = 0;
     do {
-        __m256i a0, a1, b0, b1, x;
-        __m256i y = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(coeff + coeffStride*row))), _mm_loadu_si128((__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
+        simde__m256i a0, a1, b0, b1, x;
+        simde__m256i y = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*row))), simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
 
-        x = _mm256_abs_epi16(y);
-        a0 = _mm256_mullo_epi16(x, qq);
-        a1 = _mm256_mulhi_epi16(x, qq);
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b0 = _mm256_add_epi32(b0, oo);
-        b1 = _mm256_add_epi32(b1, oo);
-        b0 = _mm256_sra_epi32(b0, s);
-        b1 = _mm256_sra_epi32(b1, s);
-        x = _mm256_packs_epi32(b0, b1);
-        z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(x, _mm256_setzero_si256()));
-        x = _mm256_sign_epi16(x, y);
-        _mm_storeu_si128((__m128i *)(quantCoeff + coeffStride*row), _mm256_extracti128_si256(x, 0));
-        _mm_storeu_si128((__m128i *)(quantCoeff + coeffStride*(row + 1)), _mm256_extracti128_si256(x, 1));
-		__m256i zer = _mm256_setzero_si256();
-		__m256i cmp = _mm256_cmpeq_epi16(x, zer);
-		int msk = _mm256_movemask_epi8(cmp);
+        x = simde_mm256_abs_epi16(y);
+        a0 = simde_mm256_mullo_epi16(x, qq);
+        a1 = simde_mm256_mulhi_epi16(x, qq);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b0 = simde_mm256_add_epi32(b0, oo);
+        b1 = simde_mm256_add_epi32(b1, oo);
+        b0 = simde_mm256_sra_epi32(b0, s);
+        b1 = simde_mm256_sra_epi32(b1, s);
+        x = simde_mm256_packs_epi32(b0, b1);
+        z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(x, simde_mm256_setzero_si256()));
+        x = simde_mm256_sign_epi16(x, y);
+        simde_mm_storeu_si128((simde__m128i *)(quantCoeff + coeffStride*row), simde_mm256_extracti128_si256(x, 0));
+        simde_mm_storeu_si128((simde__m128i *)(quantCoeff + coeffStride*(row + 1)), simde_mm256_extracti128_si256(x, 1));
+		simde__m256i zer = simde_mm256_setzero_si256();
+		simde__m256i cmp = simde_mm256_cmpeq_epi16(x, zer);
+		int msk = simde_mm256_movemask_epi8(cmp);
 
 		if ((EB_U32)msk != 0xFFFFFFFF)
 		{
-        a0 = _mm256_mullo_epi16(x, iqq);
-        a1 = _mm256_mulhi_epi16(x, iqq);
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b0 = _mm256_add_epi32(b0, ioo);
-        b1 = _mm256_add_epi32(b1, ioo);
-        b0 = _mm256_sra_epi32(b0, is);
-        b1 = _mm256_sra_epi32(b1, is);
-        x = _mm256_packs_epi32(b0, b1);
-        _mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*row), _mm256_extracti128_si256(x, 0));
-        _mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*(row + 1)), _mm256_extracti128_si256(x, 1));
+        a0 = simde_mm256_mullo_epi16(x, iqq);
+        a1 = simde_mm256_mulhi_epi16(x, iqq);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b0 = simde_mm256_add_epi32(b0, ioo);
+        b1 = simde_mm256_add_epi32(b1, ioo);
+        b0 = simde_mm256_sra_epi32(b0, is);
+        b1 = simde_mm256_sra_epi32(b1, is);
+        x = simde_mm256_packs_epi32(b0, b1);
+        simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*row), simde_mm256_extracti128_si256(x, 0));
+        simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*(row + 1)), simde_mm256_extracti128_si256(x, 1));
 		}
 		else{
-			_mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*row), _mm_setzero_si128());
-			_mm_storeu_si128((__m128i *)(reconCoeff + coeffStride*(row + 1)), _mm_setzero_si128());
+			simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*row), simde_mm_setzero_si128());
+			simde_mm_storeu_si128((simde__m128i *)(reconCoeff + coeffStride*(row + 1)), simde_mm_setzero_si128());
 		}
         row += 2;
     } while (row < 8);
 
-    z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 7));
-    *nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+    z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 7));
+    *nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 }
 
 
@@ -287,61 +286,61 @@ void EbHevcTranspose16_AVX2_INTRIN(EB_S16 *src, EB_U32 src_stride, EB_S16 *dst, 
     EB_U32 i;
     for (i = 0; i < 2; i++)
     {
-        __m256i a0, a1, a2, a3, a4, a5, a6, a7;
-        __m256i b0, b1, b2, b3, b4, b5, b6, b7;
+        simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+        simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-        a0 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 0)*src_stride));
-        a1 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 1)*src_stride));
-        a2 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 2)*src_stride));
-        a3 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 3)*src_stride));
-        a4 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 4)*src_stride));
-        a5 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 5)*src_stride));
-        a6 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 6)*src_stride));
-        a7 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 7)*src_stride));
+        a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 0)*src_stride));
+        a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 1)*src_stride));
+        a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 2)*src_stride));
+        a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 3)*src_stride));
+        a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 4)*src_stride));
+        a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 5)*src_stride));
+        a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 6)*src_stride));
+        a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 7)*src_stride));
 
-        b0 = _mm256_unpacklo_epi16(a0, a4);
-        b1 = _mm256_unpacklo_epi16(a1, a5);
-        b2 = _mm256_unpacklo_epi16(a2, a6);
-        b3 = _mm256_unpacklo_epi16(a3, a7);
-        b4 = _mm256_unpackhi_epi16(a0, a4);
-        b5 = _mm256_unpackhi_epi16(a1, a5);
-        b6 = _mm256_unpackhi_epi16(a2, a6);
-        b7 = _mm256_unpackhi_epi16(a3, a7);
+        b0 = simde_mm256_unpacklo_epi16(a0, a4);
+        b1 = simde_mm256_unpacklo_epi16(a1, a5);
+        b2 = simde_mm256_unpacklo_epi16(a2, a6);
+        b3 = simde_mm256_unpacklo_epi16(a3, a7);
+        b4 = simde_mm256_unpackhi_epi16(a0, a4);
+        b5 = simde_mm256_unpackhi_epi16(a1, a5);
+        b6 = simde_mm256_unpackhi_epi16(a2, a6);
+        b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-        a0 = _mm256_unpacklo_epi16(b0, b2);
-        a1 = _mm256_unpacklo_epi16(b1, b3);
-        a2 = _mm256_unpackhi_epi16(b0, b2);
-        a3 = _mm256_unpackhi_epi16(b1, b3);
-        a4 = _mm256_unpacklo_epi16(b4, b6);
-        a5 = _mm256_unpacklo_epi16(b5, b7);
-        a6 = _mm256_unpackhi_epi16(b4, b6);
-        a7 = _mm256_unpackhi_epi16(b5, b7);
+        a0 = simde_mm256_unpacklo_epi16(b0, b2);
+        a1 = simde_mm256_unpacklo_epi16(b1, b3);
+        a2 = simde_mm256_unpackhi_epi16(b0, b2);
+        a3 = simde_mm256_unpackhi_epi16(b1, b3);
+        a4 = simde_mm256_unpacklo_epi16(b4, b6);
+        a5 = simde_mm256_unpacklo_epi16(b5, b7);
+        a6 = simde_mm256_unpackhi_epi16(b4, b6);
+        a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b2 = _mm256_unpacklo_epi16(a2, a3);
-        b3 = _mm256_unpackhi_epi16(a2, a3);
-        b4 = _mm256_unpacklo_epi16(a4, a5);
-        b5 = _mm256_unpackhi_epi16(a4, a5);
-        b6 = _mm256_unpacklo_epi16(a6, a7);
-        b7 = _mm256_unpackhi_epi16(a6, a7);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b2 = simde_mm256_unpacklo_epi16(a2, a3);
+        b3 = simde_mm256_unpackhi_epi16(a2, a3);
+        b4 = simde_mm256_unpacklo_epi16(a4, a5);
+        b5 = simde_mm256_unpackhi_epi16(a4, a5);
+        b6 = simde_mm256_unpacklo_epi16(a6, a7);
+        b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-        _mm_storeu_si128((__m128i *)(dst + 0 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 0));
-        _mm_storeu_si128((__m128i *)(dst + 1 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 0));
-        _mm_storeu_si128((__m128i *)(dst + 2 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 0));
-        _mm_storeu_si128((__m128i *)(dst + 3 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 0));
-        _mm_storeu_si128((__m128i *)(dst + 4 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 0));
-        _mm_storeu_si128((__m128i *)(dst + 5 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 0));
-        _mm_storeu_si128((__m128i *)(dst + 6 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 0));
-        _mm_storeu_si128((__m128i *)(dst + 7 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 0));
-        _mm_storeu_si128((__m128i *)(dst + 8 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 1));
-        _mm_storeu_si128((__m128i *)(dst + 9 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 1));
-        _mm_storeu_si128((__m128i *)(dst + 10 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 1));
-        _mm_storeu_si128((__m128i *)(dst + 11 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 1));
-        _mm_storeu_si128((__m128i *)(dst + 12 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 1));
-        _mm_storeu_si128((__m128i *)(dst + 13 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 1));
-        _mm_storeu_si128((__m128i *)(dst + 14 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 1));
-        _mm_storeu_si128((__m128i *)(dst + 15 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 0 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 1 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 2 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 3 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 4 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 5 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 6 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 7 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 8 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 9 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 10 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 11 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 12 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 13 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 14 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 15 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 1));
     }
 }
 
@@ -353,61 +352,61 @@ void EbHevcTranspose32_AVX2_INTRIN(EB_S16 *src, EB_U32 src_stride, EB_S16 *dst, 
     {
         for (j = 0; j < 2; j++)
         {
-            __m256i a0, a1, a2, a3, a4, a5, a6, a7;
-            __m256i b0, b1, b2, b3, b4, b5, b6, b7;
+            simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+            simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-            a0 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 0)*src_stride + 16 * j));
-            a1 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 1)*src_stride + 16 * j));
-            a2 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 2)*src_stride + 16 * j));
-            a3 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 3)*src_stride + 16 * j));
-            a4 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 4)*src_stride + 16 * j));
-            a5 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 5)*src_stride + 16 * j));
-            a6 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 6)*src_stride + 16 * j));
-            a7 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 7)*src_stride + 16 * j));
+            a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 0)*src_stride + 16 * j));
+            a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 1)*src_stride + 16 * j));
+            a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 2)*src_stride + 16 * j));
+            a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 3)*src_stride + 16 * j));
+            a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 4)*src_stride + 16 * j));
+            a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 5)*src_stride + 16 * j));
+            a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 6)*src_stride + 16 * j));
+            a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 7)*src_stride + 16 * j));
 
-            b0 = _mm256_unpacklo_epi16(a0, a4);
-            b1 = _mm256_unpacklo_epi16(a1, a5);
-            b2 = _mm256_unpacklo_epi16(a2, a6);
-            b3 = _mm256_unpacklo_epi16(a3, a7);
-            b4 = _mm256_unpackhi_epi16(a0, a4);
-            b5 = _mm256_unpackhi_epi16(a1, a5);
-            b6 = _mm256_unpackhi_epi16(a2, a6);
-            b7 = _mm256_unpackhi_epi16(a3, a7);
+            b0 = simde_mm256_unpacklo_epi16(a0, a4);
+            b1 = simde_mm256_unpacklo_epi16(a1, a5);
+            b2 = simde_mm256_unpacklo_epi16(a2, a6);
+            b3 = simde_mm256_unpacklo_epi16(a3, a7);
+            b4 = simde_mm256_unpackhi_epi16(a0, a4);
+            b5 = simde_mm256_unpackhi_epi16(a1, a5);
+            b6 = simde_mm256_unpackhi_epi16(a2, a6);
+            b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-            a0 = _mm256_unpacklo_epi16(b0, b2);
-            a1 = _mm256_unpacklo_epi16(b1, b3);
-            a2 = _mm256_unpackhi_epi16(b0, b2);
-            a3 = _mm256_unpackhi_epi16(b1, b3);
-            a4 = _mm256_unpacklo_epi16(b4, b6);
-            a5 = _mm256_unpacklo_epi16(b5, b7);
-            a6 = _mm256_unpackhi_epi16(b4, b6);
-            a7 = _mm256_unpackhi_epi16(b5, b7);
+            a0 = simde_mm256_unpacklo_epi16(b0, b2);
+            a1 = simde_mm256_unpacklo_epi16(b1, b3);
+            a2 = simde_mm256_unpackhi_epi16(b0, b2);
+            a3 = simde_mm256_unpackhi_epi16(b1, b3);
+            a4 = simde_mm256_unpacklo_epi16(b4, b6);
+            a5 = simde_mm256_unpacklo_epi16(b5, b7);
+            a6 = simde_mm256_unpackhi_epi16(b4, b6);
+            a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-            b0 = _mm256_unpacklo_epi16(a0, a1);
-            b1 = _mm256_unpackhi_epi16(a0, a1);
-            b2 = _mm256_unpacklo_epi16(a2, a3);
-            b3 = _mm256_unpackhi_epi16(a2, a3);
-            b4 = _mm256_unpacklo_epi16(a4, a5);
-            b5 = _mm256_unpackhi_epi16(a4, a5);
-            b6 = _mm256_unpacklo_epi16(a6, a7);
-            b7 = _mm256_unpackhi_epi16(a6, a7);
+            b0 = simde_mm256_unpacklo_epi16(a0, a1);
+            b1 = simde_mm256_unpackhi_epi16(a0, a1);
+            b2 = simde_mm256_unpacklo_epi16(a2, a3);
+            b3 = simde_mm256_unpackhi_epi16(a2, a3);
+            b4 = simde_mm256_unpacklo_epi16(a4, a5);
+            b5 = simde_mm256_unpackhi_epi16(a4, a5);
+            b6 = simde_mm256_unpacklo_epi16(a6, a7);
+            b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 0)*dst_stride + 8 * i), _mm256_extracti128_si256(b0, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 1)*dst_stride + 8 * i), _mm256_extracti128_si256(b1, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 2)*dst_stride + 8 * i), _mm256_extracti128_si256(b2, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 3)*dst_stride + 8 * i), _mm256_extracti128_si256(b3, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 4)*dst_stride + 8 * i), _mm256_extracti128_si256(b4, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 5)*dst_stride + 8 * i), _mm256_extracti128_si256(b5, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 6)*dst_stride + 8 * i), _mm256_extracti128_si256(b6, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 7)*dst_stride + 8 * i), _mm256_extracti128_si256(b7, 0));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 8)*dst_stride + 8 * i), _mm256_extracti128_si256(b0, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 9)*dst_stride + 8 * i), _mm256_extracti128_si256(b1, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 10)*dst_stride + 8 * i), _mm256_extracti128_si256(b2, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 11)*dst_stride + 8 * i), _mm256_extracti128_si256(b3, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 12)*dst_stride + 8 * i), _mm256_extracti128_si256(b4, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 13)*dst_stride + 8 * i), _mm256_extracti128_si256(b5, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 14)*dst_stride + 8 * i), _mm256_extracti128_si256(b6, 1));
-            _mm_storeu_si128((__m128i *)(dst + (16 * j + 15)*dst_stride + 8 * i), _mm256_extracti128_si256(b7, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 0)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 1)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 2)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 3)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 4)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 5)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 6)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 7)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 0));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 8)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 9)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 10)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 11)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 12)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 13)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 14)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 1));
+            simde_mm_storeu_si128((simde__m128i *)(dst + (16 * j + 15)*dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 1));
         }
     }
 }
@@ -421,61 +420,61 @@ void PfreqTranspose32_AVX2_INTRIN(
     EB_U32 i;
     for (i = 0; i < 4; i++)
     {
-        __m256i a0, a1, a2, a3, a4, a5, a6, a7;
-        __m256i b0, b1, b2, b3, b4, b5, b6, b7;
+        simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+        simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-        a0 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 0)*src_stride));
-        a1 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 1)*src_stride));
-        a2 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 2)*src_stride));
-        a3 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 3)*src_stride));
-        a4 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 4)*src_stride));
-        a5 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 5)*src_stride));
-        a6 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 6)*src_stride));
-        a7 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 7)*src_stride));
+        a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 0)*src_stride));
+        a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 1)*src_stride));
+        a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 2)*src_stride));
+        a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 3)*src_stride));
+        a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 4)*src_stride));
+        a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 5)*src_stride));
+        a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 6)*src_stride));
+        a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 7)*src_stride));
 
-        b0 = _mm256_unpacklo_epi16(a0, a4);
-        b1 = _mm256_unpacklo_epi16(a1, a5);
-        b2 = _mm256_unpacklo_epi16(a2, a6);
-        b3 = _mm256_unpacklo_epi16(a3, a7);
-        b4 = _mm256_unpackhi_epi16(a0, a4);
-        b5 = _mm256_unpackhi_epi16(a1, a5);
-        b6 = _mm256_unpackhi_epi16(a2, a6);
-        b7 = _mm256_unpackhi_epi16(a3, a7);
+        b0 = simde_mm256_unpacklo_epi16(a0, a4);
+        b1 = simde_mm256_unpacklo_epi16(a1, a5);
+        b2 = simde_mm256_unpacklo_epi16(a2, a6);
+        b3 = simde_mm256_unpacklo_epi16(a3, a7);
+        b4 = simde_mm256_unpackhi_epi16(a0, a4);
+        b5 = simde_mm256_unpackhi_epi16(a1, a5);
+        b6 = simde_mm256_unpackhi_epi16(a2, a6);
+        b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-        a0 = _mm256_unpacklo_epi16(b0, b2);
-        a1 = _mm256_unpacklo_epi16(b1, b3);
-        a2 = _mm256_unpackhi_epi16(b0, b2);
-        a3 = _mm256_unpackhi_epi16(b1, b3);
-        a4 = _mm256_unpacklo_epi16(b4, b6);
-        a5 = _mm256_unpacklo_epi16(b5, b7);
-        a6 = _mm256_unpackhi_epi16(b4, b6);
-        a7 = _mm256_unpackhi_epi16(b5, b7);
+        a0 = simde_mm256_unpacklo_epi16(b0, b2);
+        a1 = simde_mm256_unpacklo_epi16(b1, b3);
+        a2 = simde_mm256_unpackhi_epi16(b0, b2);
+        a3 = simde_mm256_unpackhi_epi16(b1, b3);
+        a4 = simde_mm256_unpacklo_epi16(b4, b6);
+        a5 = simde_mm256_unpacklo_epi16(b5, b7);
+        a6 = simde_mm256_unpackhi_epi16(b4, b6);
+        a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-        b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
-        b2 = _mm256_unpacklo_epi16(a2, a3);
-        b3 = _mm256_unpackhi_epi16(a2, a3);
-        b4 = _mm256_unpacklo_epi16(a4, a5);
-        b5 = _mm256_unpackhi_epi16(a4, a5);
-        b6 = _mm256_unpacklo_epi16(a6, a7);
-        b7 = _mm256_unpackhi_epi16(a6, a7);
+        b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
+        b2 = simde_mm256_unpacklo_epi16(a2, a3);
+        b3 = simde_mm256_unpackhi_epi16(a2, a3);
+        b4 = simde_mm256_unpacklo_epi16(a4, a5);
+        b5 = simde_mm256_unpackhi_epi16(a4, a5);
+        b6 = simde_mm256_unpacklo_epi16(a6, a7);
+        b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-        _mm_storeu_si128((__m128i *)(dst + 0 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 0));
-        _mm_storeu_si128((__m128i *)(dst + 1 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 0));
-        _mm_storeu_si128((__m128i *)(dst + 2 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 0));
-        _mm_storeu_si128((__m128i *)(dst + 3 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 0));
-        _mm_storeu_si128((__m128i *)(dst + 4 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 0));
-        _mm_storeu_si128((__m128i *)(dst + 5 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 0));
-        _mm_storeu_si128((__m128i *)(dst + 6 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 0));
-        _mm_storeu_si128((__m128i *)(dst + 7 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 0));
-        _mm_storeu_si128((__m128i *)(dst + 8 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 1));
-        _mm_storeu_si128((__m128i *)(dst + 9 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 1));
-        _mm_storeu_si128((__m128i *)(dst + 10 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 1));
-        _mm_storeu_si128((__m128i *)(dst + 11 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 1));
-        _mm_storeu_si128((__m128i *)(dst + 12 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 1));
-        _mm_storeu_si128((__m128i *)(dst + 13 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 1));
-        _mm_storeu_si128((__m128i *)(dst + 14 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 1));
-        _mm_storeu_si128((__m128i *)(dst + 15 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 0 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 1 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 2 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 3 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 4 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 5 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 6 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 7 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 0));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 8 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 9 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 10 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 11 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 12 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 13 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 14 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 1));
+        simde_mm_storeu_si128((simde__m128i *)(dst + 15 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 1));
     }
 }
 
@@ -489,61 +488,61 @@ void PfreqSecTranspose32_AVX2_INTRIN(
 	//  for (i = 0; i < 4; i++)
 	for (i = 0; i < 2; i++)
 	{
-		__m256i a0, a1, a2, a3, a4, a5, a6, a7;
-		__m256i b0, b1, b2, b3, b4, b5, b6, b7;
+		simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+		simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-		a0 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 0)*src_stride));
-		a1 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 1)*src_stride));
-		a2 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 2)*src_stride));
-		a3 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 3)*src_stride));
-		a4 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 4)*src_stride));
-		a5 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 5)*src_stride));
-		a6 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 6)*src_stride));
-		a7 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 7)*src_stride));
+		a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 0)*src_stride));
+		a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 1)*src_stride));
+		a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 2)*src_stride));
+		a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 3)*src_stride));
+		a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 4)*src_stride));
+		a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 5)*src_stride));
+		a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 6)*src_stride));
+		a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 7)*src_stride));
 
-		b0 = _mm256_unpacklo_epi16(a0, a4);
-		b1 = _mm256_unpacklo_epi16(a1, a5);
-		b2 = _mm256_unpacklo_epi16(a2, a6);
-		b3 = _mm256_unpacklo_epi16(a3, a7);
-		b4 = _mm256_unpackhi_epi16(a0, a4);
-		b5 = _mm256_unpackhi_epi16(a1, a5);
-		b6 = _mm256_unpackhi_epi16(a2, a6);
-		b7 = _mm256_unpackhi_epi16(a3, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a4);
+		b1 = simde_mm256_unpacklo_epi16(a1, a5);
+		b2 = simde_mm256_unpacklo_epi16(a2, a6);
+		b3 = simde_mm256_unpacklo_epi16(a3, a7);
+		b4 = simde_mm256_unpackhi_epi16(a0, a4);
+		b5 = simde_mm256_unpackhi_epi16(a1, a5);
+		b6 = simde_mm256_unpackhi_epi16(a2, a6);
+		b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-		a0 = _mm256_unpacklo_epi16(b0, b2);
-		a1 = _mm256_unpacklo_epi16(b1, b3);
-		a2 = _mm256_unpackhi_epi16(b0, b2);
-		a3 = _mm256_unpackhi_epi16(b1, b3);
-		a4 = _mm256_unpacklo_epi16(b4, b6);
-		a5 = _mm256_unpacklo_epi16(b5, b7);
-		a6 = _mm256_unpackhi_epi16(b4, b6);
-		a7 = _mm256_unpackhi_epi16(b5, b7);
+		a0 = simde_mm256_unpacklo_epi16(b0, b2);
+		a1 = simde_mm256_unpacklo_epi16(b1, b3);
+		a2 = simde_mm256_unpackhi_epi16(b0, b2);
+		a3 = simde_mm256_unpackhi_epi16(b1, b3);
+		a4 = simde_mm256_unpacklo_epi16(b4, b6);
+		a5 = simde_mm256_unpacklo_epi16(b5, b7);
+		a6 = simde_mm256_unpackhi_epi16(b4, b6);
+		a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-		b0 = _mm256_unpacklo_epi16(a0, a1);
-		b1 = _mm256_unpackhi_epi16(a0, a1);
-		b2 = _mm256_unpacklo_epi16(a2, a3);
-		b3 = _mm256_unpackhi_epi16(a2, a3);
-		b4 = _mm256_unpacklo_epi16(a4, a5);
-		b5 = _mm256_unpackhi_epi16(a4, a5);
-		b6 = _mm256_unpacklo_epi16(a6, a7);
-		b7 = _mm256_unpackhi_epi16(a6, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a1);
+		b1 = simde_mm256_unpackhi_epi16(a0, a1);
+		b2 = simde_mm256_unpacklo_epi16(a2, a3);
+		b3 = simde_mm256_unpackhi_epi16(a2, a3);
+		b4 = simde_mm256_unpacklo_epi16(a4, a5);
+		b5 = simde_mm256_unpackhi_epi16(a4, a5);
+		b6 = simde_mm256_unpacklo_epi16(a6, a7);
+		b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-		_mm_storeu_si128((__m128i *)(dst + 0 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 0));
-		_mm_storeu_si128((__m128i *)(dst + 1 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 0));
-		_mm_storeu_si128((__m128i *)(dst + 2 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 0));
-		_mm_storeu_si128((__m128i *)(dst + 3 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 0));
-		_mm_storeu_si128((__m128i *)(dst + 4 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 0));
-		_mm_storeu_si128((__m128i *)(dst + 5 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 0));
-		_mm_storeu_si128((__m128i *)(dst + 6 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 0));
-		_mm_storeu_si128((__m128i *)(dst + 7 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 0));
-		_mm_storeu_si128((__m128i *)(dst + 8 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 1));
-		_mm_storeu_si128((__m128i *)(dst + 9 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 1));
-		_mm_storeu_si128((__m128i *)(dst + 10 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 1));
-		_mm_storeu_si128((__m128i *)(dst + 11 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 1));
-		_mm_storeu_si128((__m128i *)(dst + 12 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 1));
-		_mm_storeu_si128((__m128i *)(dst + 13 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 1));
-		_mm_storeu_si128((__m128i *)(dst + 14 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 1));
-		_mm_storeu_si128((__m128i *)(dst + 15 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 0 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 1 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 2 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 3 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 4 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 5 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 6 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 7 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 8 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 9 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 10 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 11 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 12 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 13 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 14 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 15 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 1));
 	}
 }
 
@@ -551,61 +550,61 @@ void PfreqSecTranspose32_AVX2_INTRIN(
 void transform16_AVX2_INTRIN(EB_S16 *src, EB_U32 src_stride, EB_S16 *dst, EB_U32 dst_stride, EB_S16 shift)
 {
     EB_U32 i;
-    __m128i s0 = _mm_cvtsi32_si128(shift);
-    __m256i o0 = _mm256_set1_epi32(1 << (shift - 1));
-    const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+    simde__m128i s0 = simde_mm_cvtsi32_si128(shift);
+    simde__m256i o0 = simde_mm256_set1_epi32(1 << (shift - 1));
+    const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
     for (i = 0; i < 16; i += 2)
     {
-        __m256i x0, x1;
-        __m256i y0, y1;
-        __m256i a0, a1, a2, a3;
-        __m256i b0, b1, b2, b3;
-        //_mm_loadu_si128((__m128i*)(ref + refStride))
-        y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x00))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
-        y1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x08))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
+        simde__m256i x0, x1;
+        simde__m256i y0, y1;
+        simde__m256i a0, a1, a2, a3;
+        simde__m256i b0, b1, b2, b3;
+        //simde_mm_loadu_si128((simde__m128i*)(ref + refStride))
+        y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
+        y1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
 
         // 16-point butterfly
-        y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        x0 = _mm256_add_epi16(y0, y1);
-        x1 = _mm256_sub_epi16(y0, y1);
+        x0 = simde_mm256_add_epi16(y0, y1);
+        x1 = simde_mm256_sub_epi16(y0, y1);
 
-        a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+        a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-        a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+        a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-        a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+        a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-        a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+        a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-        b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-        b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-        b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-        b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
+        b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+        b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+        b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+        b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
 
-        x0 = _mm256_packs_epi32(b0, b1);
-        x1 = _mm256_packs_epi32(b2, b3);
+        x0 = simde_mm256_packs_epi32(b0, b1);
+        x1 = simde_mm256_packs_epi32(b2, b3);
 
-        y0 = _mm256_unpacklo_epi16(x0, x1);
-        y1 = _mm256_unpackhi_epi16(x0, x1);
-        x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(y0, 0)), _mm256_extracti128_si256(y1, 0), 0x1);
-        x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(y0, 1)), _mm256_extracti128_si256(y1, 1), 0x1);
+        y0 = simde_mm256_unpacklo_epi16(x0, x1);
+        y1 = simde_mm256_unpackhi_epi16(x0, x1);
+        x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(y0, 0)), simde_mm256_extracti128_si256(y1, 0), 0x1);
+        x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(y0, 1)), simde_mm256_extracti128_si256(y1, 1), 0x1);
 
-        _mm256_storeu_si256((__m256i *)(dst + i*dst_stride), x0);
-        _mm256_storeu_si256((__m256i *)(dst + (i + 1)*dst_stride), x1);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + i*dst_stride), x0);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + (i + 1)*dst_stride), x1);
     }
 }
 
@@ -613,132 +612,132 @@ void transform16_AVX2_INTRIN(EB_S16 *src, EB_U32 src_stride, EB_S16 *dst, EB_U32
 void EbHevcTransform32_AVX2_INTRIN(EB_S16 *src, EB_U32 src_stride, EB_S16 *dst, EB_U32 dst_stride, EB_U32 shift)
 {
     EB_U32 i;
-    __m128i s0;
-    __m256i o0;
-    const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+    simde__m128i s0;
+    simde__m256i o0;
+    const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
     shift &= 0x0000FFFF; // Redundant code to fix Visual Studio 2012 AVX2 compiler error
-    s0 = _mm_cvtsi32_si128(shift);
-    o0 = _mm256_set1_epi32(1 << (shift - 1));
+    s0 = simde_mm_cvtsi32_si128(shift);
+    o0 = simde_mm256_set1_epi32(1 << (shift - 1));
 
     for (i = 0; i < 16; i++)
     {
-        __m256i x0, x1, x2, x3;
-        __m256i y0, y1, y2, y3;
-        __m256i a0, a1, a2, a3, a4, a5, a6, a7;
-        __m256i b0, b1, b2, b3, b4, b5, b6, b7;
+        simde__m256i x0, x1, x2, x3;
+        simde__m256i y0, y1, y2, y3;
+        simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+        simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-        x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + 0x00))), _mm_loadu_si128((const __m128i *)(src + src_stride + 0x00)), 0x1);
-        x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + 0x08))), _mm_loadu_si128((const __m128i *)(src + src_stride + 0x08)), 0x1);
-        x2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + 0x10))), _mm_loadu_si128((const __m128i *)(src + src_stride + 0x10)), 0x1);
-        x3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + 0x18))), _mm_loadu_si128((const __m128i *)(src + src_stride + 0x18)), 0x1);
+        x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + src_stride + 0x00)), 0x1);
+        x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + src_stride + 0x08)), 0x1);
+        x2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + 0x10))), simde_mm_loadu_si128((const simde__m128i *)(src + src_stride + 0x10)), 0x1);
+        x3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + 0x18))), simde_mm_loadu_si128((const simde__m128i *)(src + src_stride + 0x18)), 0x1);
 
         // 32-point butterfly
-        x2 = _mm256_shuffle_epi8(x2, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
-        x3 = _mm256_shuffle_epi8(x3, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x2 = simde_mm256_shuffle_epi8(x2, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x3 = simde_mm256_shuffle_epi8(x3, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        y0 = _mm256_add_epi16(x0, x3);
-        y1 = _mm256_add_epi16(x1, x2);
+        y0 = simde_mm256_add_epi16(x0, x3);
+        y1 = simde_mm256_add_epi16(x1, x2);
 
-        y2 = _mm256_sub_epi16(x0, x3);
-        y3 = _mm256_sub_epi16(x1, x2);
+        y2 = simde_mm256_sub_epi16(x0, x3);
+        y3 = simde_mm256_sub_epi16(x1, x2);
 
         // 16-point butterfly
-        y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        x0 = _mm256_add_epi16(y0, y1);
-        x1 = _mm256_sub_epi16(y0, y1);
+        x0 = simde_mm256_add_epi16(y0, y1);
+        x1 = simde_mm256_sub_epi16(y0, y1);
 
         x2 = y2;
         x3 = y3;
 
-        a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+        a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-        a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-        a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+        a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+        a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-        a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+        a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-        a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-        a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+        a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+        a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-        a4 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
+        a4 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
 
-        a5 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
+        a5 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
 
-        a6 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
-        a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
+        a6 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
+        a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
 
-        a7 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
-        a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
+        a7 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
+        a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
 
-        b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-        b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-        b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-        b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
-        b4 = _mm256_sra_epi32(_mm256_add_epi32(a4, o0), s0);
-        b5 = _mm256_sra_epi32(_mm256_add_epi32(a5, o0), s0);
-        b6 = _mm256_sra_epi32(_mm256_add_epi32(a6, o0), s0);
-        b7 = _mm256_sra_epi32(_mm256_add_epi32(a7, o0), s0);
+        b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+        b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+        b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+        b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
+        b4 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a4, o0), s0);
+        b5 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a5, o0), s0);
+        b6 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a6, o0), s0);
+        b7 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a7, o0), s0);
 
-        x0 = _mm256_packs_epi32(b0, b1);
-        x1 = _mm256_packs_epi32(b2, b3);
-        x2 = _mm256_packs_epi32(b4, b5);
-        x3 = _mm256_packs_epi32(b6, b7);
+        x0 = simde_mm256_packs_epi32(b0, b1);
+        x1 = simde_mm256_packs_epi32(b2, b3);
+        x2 = simde_mm256_packs_epi32(b4, b5);
+        x3 = simde_mm256_packs_epi32(b6, b7);
 
-        y0 = _mm256_unpacklo_epi16(x0, x1);
-        y1 = _mm256_unpackhi_epi16(x0, x1);
+        y0 = simde_mm256_unpacklo_epi16(x0, x1);
+        y1 = simde_mm256_unpackhi_epi16(x0, x1);
         y2 = x2;
         y3 = x3;
-        x0 = _mm256_unpacklo_epi16(y0, y2);
-        x1 = _mm256_unpackhi_epi16(y0, y2);
-        x2 = _mm256_unpacklo_epi16(y1, y3);
-        x3 = _mm256_unpackhi_epi16(y1, y3);
+        x0 = simde_mm256_unpacklo_epi16(y0, y2);
+        x1 = simde_mm256_unpackhi_epi16(y0, y2);
+        x2 = simde_mm256_unpacklo_epi16(y1, y3);
+        x3 = simde_mm256_unpackhi_epi16(y1, y3);
 
-        y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 0)), _mm256_extracti128_si256(x1, 0), 0x1);
-        y1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x2, 0)), _mm256_extracti128_si256(x3, 0), 0x1);
-        y2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 1)), _mm256_extracti128_si256(x1, 1), 0x1);
-        y3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x2, 1)), _mm256_extracti128_si256(x3, 1), 0x1);
-        _mm256_storeu_si256((__m256i *)(dst + 0x00), y0);
-        _mm256_storeu_si256((__m256i *)(dst + 0x10), y1);
-        _mm256_storeu_si256((__m256i *)(dst + dst_stride + 0x00), y2);
-        _mm256_storeu_si256((__m256i *)(dst + dst_stride + 0x10), y3);
+        y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 0)), simde_mm256_extracti128_si256(x1, 0), 0x1);
+        y1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x2, 0)), simde_mm256_extracti128_si256(x3, 0), 0x1);
+        y2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 1)), simde_mm256_extracti128_si256(x1, 1), 0x1);
+        y3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x2, 1)), simde_mm256_extracti128_si256(x3, 1), 0x1);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + 0x00), y0);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + 0x10), y1);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + dst_stride + 0x00), y2);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + dst_stride + 0x10), y3);
 
         src += 2 * src_stride;
         dst += 2 * dst_stride;
@@ -753,129 +752,129 @@ void Pfreq1DTransform32_AVX2_INTRIN(
     EB_U32  shift)
 {
     EB_U32 i;
-    __m128i s0 = _mm_cvtsi32_si128(shift);
-    __m256i o0 = _mm256_set1_epi32(1 << (shift - 1));
-    const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+    simde__m128i s0 = simde_mm_cvtsi32_si128(shift);
+    simde__m256i o0 = simde_mm256_set1_epi32(1 << (shift - 1));
+    const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
     for (i = 0; i < 32; i += 2)
     {
-        __m256i x0, x1, x2, x3;
-        __m256i y0, y1, y2, y3;
-        __m256i a0, a2, a4, a5;
-        __m256i b0, b2, b4, b5;
+        simde__m256i x0, x1, x2, x3;
+        simde__m256i y0, y1, y2, y3;
+        simde__m256i a0, a2, a4, a5;
+        simde__m256i b0, b2, b4, b5;
 
         //b1=s0;
         //b3=s0;
 
-        x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x00))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
-        x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x08))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
-        x2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x10))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
-        x3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x18))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
+        x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
+        x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
+        x2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x10))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
+        x3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x18))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
 
         // 32-point butterfly
-        x2 = _mm256_shuffle_epi8(x2, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
-        x3 = _mm256_shuffle_epi8(x3, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x2 = simde_mm256_shuffle_epi8(x2, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x3 = simde_mm256_shuffle_epi8(x3, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        y0 = _mm256_add_epi16(x0, x3);
-        y1 = _mm256_add_epi16(x1, x2);
+        y0 = simde_mm256_add_epi16(x0, x3);
+        y1 = simde_mm256_add_epi16(x1, x2);
 
-        y2 = _mm256_sub_epi16(x0, x3);
-        y3 = _mm256_sub_epi16(x1, x2);
+        y2 = simde_mm256_sub_epi16(x0, x3);
+        y3 = simde_mm256_sub_epi16(x1, x2);
 
         // 16-point butterfly
-        y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        x0 = _mm256_add_epi16(y0, y1);
-        x1 = _mm256_sub_epi16(y0, y1);
+        x0 = simde_mm256_add_epi16(y0, y1);
+        x1 = simde_mm256_sub_epi16(y0, y1);
 
         x2 = y2;
         x3 = y3;
 
-        a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+        a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-        //a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+        //a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-        a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+        a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-        //a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+        //a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-        a4 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
+        a4 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
 
-        a5 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
+        a5 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
 
-        //a6 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
+        //a6 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
         //
-        //a7 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
+        //a7 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
 
-        b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-        //b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-        b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-        //b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
-        b4 = _mm256_sra_epi32(_mm256_add_epi32(a4, o0), s0);
-        b5 = _mm256_sra_epi32(_mm256_add_epi32(a5, o0), s0);
-        //b6 = _mm256_sra_epi32(_mm256_add_epi32(a6, o0), s0);
-        //b7 = _mm256_sra_epi32(_mm256_add_epi32(a7, o0), s0);
+        b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+        //b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+        b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+        //b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
+        b4 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a4, o0), s0);
+        b5 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a5, o0), s0);
+        //b6 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a6, o0), s0);
+        //b7 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a7, o0), s0);
 
-        x0 = _mm256_packs_epi32(b0, b0);
-        x1 = _mm256_packs_epi32(b2, b2);
-        x2 = _mm256_packs_epi32(b4, b5);
-        //x3 = _mm256_packs_epi32(b6, b7);
+        x0 = simde_mm256_packs_epi32(b0, b0);
+        x1 = simde_mm256_packs_epi32(b2, b2);
+        x2 = simde_mm256_packs_epi32(b4, b5);
+        //x3 = simde_mm256_packs_epi32(b6, b7);
 
-        y0 = _mm256_unpacklo_epi16(x0, x1);
-        //y1 = _mm256_unpackhi_epi16(x0, x1);
+        y0 = simde_mm256_unpacklo_epi16(x0, x1);
+        //y1 = simde_mm256_unpackhi_epi16(x0, x1);
         y2 = x2;
         //y3 = x3;
-        x0 = _mm256_unpacklo_epi16(y0, y2);
-        x1 = _mm256_unpackhi_epi16(y0, y2);
-        //x2 = _mm256_unpacklo_epi16(y1, y3);
-        //x3 = _mm256_unpackhi_epi16(y1, y3);
+        x0 = simde_mm256_unpacklo_epi16(y0, y2);
+        x1 = simde_mm256_unpackhi_epi16(y0, y2);
+        //x2 = simde_mm256_unpacklo_epi16(y1, y3);
+        //x3 = simde_mm256_unpackhi_epi16(y1, y3);
 
-        y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 0)), _mm256_extracti128_si256(x1, 0), 0x1);
-        y2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 1)), _mm256_extracti128_si256(x1, 1), 0x1);
-        _mm256_storeu_si256((__m256i *)(dst + i*dst_stride), y0);
-        _mm256_storeu_si256((__m256i *)(dst + (i + 1)*dst_stride), y2);
-        //_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x10), x2);
-        //_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x18), x3);
+        y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 0)), simde_mm256_extracti128_si256(x1, 0), 0x1);
+        y2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 1)), simde_mm256_extracti128_si256(x1, 1), 0x1);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + i*dst_stride), y0);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + (i + 1)*dst_stride), y2);
+        //simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x10), x2);
+        //simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x18), x3);
     }
 }
 
@@ -887,129 +886,129 @@ void Pfreq2DTransform32_AVX2_INTRIN(
     EB_U32  shift)
 {
     EB_U32 i;
-    __m128i s0 = _mm_cvtsi32_si128(shift);
-    __m256i o0 = _mm256_set1_epi32(1 << (shift - 1));
-    const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+    simde__m128i s0 = simde_mm_cvtsi32_si128(shift);
+    simde__m256i o0 = simde_mm256_set1_epi32(1 << (shift - 1));
+    const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
     for (i = 0; i < 16; i += 2)
     {
-        __m256i x0, x1, x2, x3;
-        __m256i y0, y1, y2, y3;
-        __m256i a0, a2, a4, a5;
-        __m256i b0, b2, b4, b5;
+        simde__m256i x0, x1, x2, x3;
+        simde__m256i y0, y1, y2, y3;
+        simde__m256i a0, a2, a4, a5;
+        simde__m256i b0, b2, b4, b5;
 
         //b1=s0;
         //b3=s0;
 
-        x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x00))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
-        x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x08))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
-        x2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x10))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
-        x3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x18))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
+        x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
+        x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
+        x2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x10))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
+        x3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x18))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
 
         // 32-point butterfly
-        x2 = _mm256_shuffle_epi8(x2, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
-        x3 = _mm256_shuffle_epi8(x3, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x2 = simde_mm256_shuffle_epi8(x2, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        x3 = simde_mm256_shuffle_epi8(x3, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        y0 = _mm256_add_epi16(x0, x3);
-        y1 = _mm256_add_epi16(x1, x2);
+        y0 = simde_mm256_add_epi16(x0, x3);
+        y1 = simde_mm256_add_epi16(x1, x2);
 
-        y2 = _mm256_sub_epi16(x0, x3);
-        y3 = _mm256_sub_epi16(x1, x2);
+        y2 = simde_mm256_sub_epi16(x0, x3);
+        y3 = simde_mm256_sub_epi16(x1, x2);
 
         // 16-point butterfly
-        y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+        y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-        x0 = _mm256_add_epi16(y0, y1);
-        x1 = _mm256_sub_epi16(y0, y1);
+        x0 = simde_mm256_add_epi16(y0, y1);
+        x1 = simde_mm256_sub_epi16(y0, y1);
 
         x2 = y2;
         x3 = y3;
 
-        a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-        a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+        a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+        a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-        //a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-        //a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+        //a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+        //a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-        a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-        a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+        a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+        a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-        //a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-        //a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+        //a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+        //a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-        a4 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
-        a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
+        a4 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
+        a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
 
-        a5 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
-        a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
+        a5 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
+        a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
 
-        //a6 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
-        //a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
+        //a6 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
+        //a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
         //
-        //a7 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
-        //a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
+        //a7 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
+        //a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
 
-        b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-        //b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-        b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-        //b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
-        b4 = _mm256_sra_epi32(_mm256_add_epi32(a4, o0), s0);
-        b5 = _mm256_sra_epi32(_mm256_add_epi32(a5, o0), s0);
-        //b6 = _mm256_sra_epi32(_mm256_add_epi32(a6, o0), s0);
-        //b7 = _mm256_sra_epi32(_mm256_add_epi32(a7, o0), s0);
+        b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+        //b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+        b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+        //b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
+        b4 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a4, o0), s0);
+        b5 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a5, o0), s0);
+        //b6 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a6, o0), s0);
+        //b7 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a7, o0), s0);
 
-        x0 = _mm256_packs_epi32(b0, b0);
-        x1 = _mm256_packs_epi32(b2, b2);
-        x2 = _mm256_packs_epi32(b4, b5);
-        //x3 = _mm256_packs_epi32(b6, b7);
+        x0 = simde_mm256_packs_epi32(b0, b0);
+        x1 = simde_mm256_packs_epi32(b2, b2);
+        x2 = simde_mm256_packs_epi32(b4, b5);
+        //x3 = simde_mm256_packs_epi32(b6, b7);
 
-        y0 = _mm256_unpacklo_epi16(x0, x1);
-        //y1 = _mm256_unpackhi_epi16(x0, x1);
+        y0 = simde_mm256_unpacklo_epi16(x0, x1);
+        //y1 = simde_mm256_unpackhi_epi16(x0, x1);
         y2 = x2;
         //y3 = x3;
-        x0 = _mm256_unpacklo_epi16(y0, y2);
-        x1 = _mm256_unpackhi_epi16(y0, y2);
-        //x2 = _mm256_unpacklo_epi16(y1, y3);
-        //x3 = _mm256_unpackhi_epi16(y1, y3);
+        x0 = simde_mm256_unpacklo_epi16(y0, y2);
+        x1 = simde_mm256_unpackhi_epi16(y0, y2);
+        //x2 = simde_mm256_unpacklo_epi16(y1, y3);
+        //x3 = simde_mm256_unpackhi_epi16(y1, y3);
 
-        y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 0)), _mm256_extracti128_si256(x1, 0), 0x1);
-        y2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 1)), _mm256_extracti128_si256(x1, 1), 0x1);
-        _mm256_storeu_si256((__m256i *)(dst + i*dst_stride), y0);
-        _mm256_storeu_si256((__m256i *)(dst + (i + 1)*dst_stride), y2);
-        //_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x10), x2);
-        //_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x18), x3);
+        y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 0)), simde_mm256_extracti128_si256(x1, 0), 0x1);
+        y2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 1)), simde_mm256_extracti128_si256(x1, 1), 0x1);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + i*dst_stride), y0);
+        simde_mm256_storeu_si256((simde__m256i *)(dst + (i + 1)*dst_stride), y2);
+        //simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x10), x2);
+        //simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x18), x3);
     }
 }
 
@@ -1036,133 +1035,133 @@ void PfreqN41DTransform32_AVX2_INTRIN(
 	EB_U32  shift)
 {
 	EB_U32 i;
-	__m128i s0 = _mm_cvtsi32_si128(shift);
-	__m256i o0 = _mm256_set1_epi32(1 << (shift - 1));
-	const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+	simde__m128i s0 = simde_mm_cvtsi32_si128(shift);
+	simde__m256i o0 = simde_mm256_set1_epi32(1 << (shift - 1));
+	const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
 	for (i = 0; i < 32; i += 2)
 	{
-		__m256i x0, x1, x2, x3;
-		__m256i y0, y1, y2, y3;
-		__m256i a0, a2, a4, a5;
-		__m256i b0, b2, b4, b5;
+		simde__m256i x0, x1, x2, x3;
+		simde__m256i y0, y1, y2, y3;
+		simde__m256i a0, a2, a4, a5;
+		simde__m256i b0, b2, b4, b5;
 
 		//b1=s0;
 		//b3=s0;
 
-		x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x00))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
-		x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x08))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
-		x2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x10))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
-		x3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x18))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
+		x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
+		x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
+		x2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x10))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
+		x3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x18))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
 
 		// 32-point butterfly
-		x2 = _mm256_shuffle_epi8(x2, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
-		x3 = _mm256_shuffle_epi8(x3, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		x2 = simde_mm256_shuffle_epi8(x2, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		x3 = simde_mm256_shuffle_epi8(x3, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-		y0 = _mm256_add_epi16(x0, x3);
-		y1 = _mm256_add_epi16(x1, x2);
+		y0 = simde_mm256_add_epi16(x0, x3);
+		y1 = simde_mm256_add_epi16(x1, x2);
 
-		y2 = _mm256_sub_epi16(x0, x3);
-		y3 = _mm256_sub_epi16(x1, x2);
+		y2 = simde_mm256_sub_epi16(x0, x3);
+		y3 = simde_mm256_sub_epi16(x1, x2);
 
 		// 16-point butterfly
-		y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-		x0 = _mm256_add_epi16(y0, y1);
-		x1 = _mm256_sub_epi16(y0, y1);
+		x0 = simde_mm256_add_epi16(y0, y1);
+		x1 = simde_mm256_sub_epi16(y0, y1);
 
 		x2 = y2;
 		x3 = y3;
 
-		a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+		a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-		//a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+		//a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-		a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+		a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-		//a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+		//a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-		a4 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
+		a4 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
 
-		a5 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
+		a5 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
 
-		//a6 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
+		//a6 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
 		//
-		//a7 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
+		//a7 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
 
-		b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-		//b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-		b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-		//b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
-		b4 = _mm256_sra_epi32(_mm256_add_epi32(a4, o0), s0);
-		b5 = _mm256_sra_epi32(_mm256_add_epi32(a5, o0), s0);
-		//b6 = _mm256_sra_epi32(_mm256_add_epi32(a6, o0), s0);
-		//b7 = _mm256_sra_epi32(_mm256_add_epi32(a7, o0), s0);
+		b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+		//b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+		b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+		//b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
+		b4 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a4, o0), s0);
+		b5 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a5, o0), s0);
+		//b6 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a6, o0), s0);
+		//b7 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a7, o0), s0);
 
-		x0 = _mm256_packs_epi32(b0, b0);
-		x1 = _mm256_packs_epi32(b2, b2);
-		x2 = _mm256_packs_epi32(b4, b5);
-		//x3 = _mm256_packs_epi32(b6, b7);
+		x0 = simde_mm256_packs_epi32(b0, b0);
+		x1 = simde_mm256_packs_epi32(b2, b2);
+		x2 = simde_mm256_packs_epi32(b4, b5);
+		//x3 = simde_mm256_packs_epi32(b6, b7);
 
-		y0 = _mm256_unpacklo_epi16(x0, x1);
-		//y1 = _mm256_unpackhi_epi16(x0, x1);
+		y0 = simde_mm256_unpacklo_epi16(x0, x1);
+		//y1 = simde_mm256_unpackhi_epi16(x0, x1);
 		y2 = x2;
 		//y3 = x3;
-		x0 = _mm256_unpacklo_epi16(y0, y2);
-		//--//        x1 = _mm256_unpackhi_epi16(y0, y2);
-		//x2 = _mm256_unpacklo_epi16(y1, y3);
-		//x3 = _mm256_unpackhi_epi16(y1, y3);
+		x0 = simde_mm256_unpacklo_epi16(y0, y2);
+		//--//        x1 = simde_mm256_unpackhi_epi16(y0, y2);
+		//x2 = simde_mm256_unpacklo_epi16(y1, y3);
+		//x3 = simde_mm256_unpackhi_epi16(y1, y3);
 
-		//--//  y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 0)), _mm256_extracti128_si256(x1, 0), 0x1);
-		//--//  y2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 1)), _mm256_extracti128_si256(x1, 1), 0x1);
-		//--//  _mm256_storeu_si256((__m256i *)(dst + i*dst_stride), y0);
-		//--//  _mm256_storeu_si256((__m256i *)(dst + (i + 1)*dst_stride), y2);
+		//--//  y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 0)), simde_mm256_extracti128_si256(x1, 0), 0x1);
+		//--//  y2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 1)), simde_mm256_extracti128_si256(x1, 1), 0x1);
+		//--//  simde_mm256_storeu_si256((simde__m256i *)(dst + i*dst_stride), y0);
+		//--//  simde_mm256_storeu_si256((simde__m256i *)(dst + (i + 1)*dst_stride), y2);
 
-		_mm_storeu_si128((__m128i *)(dst + i*dst_stride), _mm256_extracti128_si256(x0, 0));
-		_mm_storeu_si128((__m128i *)(dst + (i + 1)*dst_stride), _mm256_extracti128_si256(x0, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + i*dst_stride), simde_mm256_extracti128_si256(x0, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + (i + 1)*dst_stride), simde_mm256_extracti128_si256(x0, 1));
 
-		//_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x10), x2);
-		//_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x18), x3);
+		//simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x10), x2);
+		//simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x18), x3);
 	}
 }
 void PfreqN42DTransform32_AVX2_INTRIN(
@@ -1173,136 +1172,136 @@ void PfreqN42DTransform32_AVX2_INTRIN(
 	EB_U32  shift)
 {
 	EB_U32 i;
-	__m128i s0 = _mm_cvtsi32_si128(shift);
-	__m256i o0 = _mm256_set1_epi32(1 << (shift - 1));
-	const __m256i *coeff32 = (const __m256i *)EbHevcCoeff_tbl_AVX2;
+	simde__m128i s0 = simde_mm_cvtsi32_si128(shift);
+	simde__m256i o0 = simde_mm256_set1_epi32(1 << (shift - 1));
+	const simde__m256i *coeff32 = (const simde__m256i *)EbHevcCoeff_tbl_AVX2;
 
 	//for (i = 0; i < 16; i += 2)
 	for (i = 0; i < 8; i += 2)
 	{
-		__m256i x0, x1, x2, x3;
-		__m256i y0, y1, y2, y3;
-		__m256i a0, a2, a4, a5;
-		__m256i b0, b2, b4, b5;
+		simde__m256i x0, x1, x2, x3;
+		simde__m256i y0, y1, y2, y3;
+		simde__m256i a0, a2, a4, a5;
+		simde__m256i b0, b2, b4, b5;
 
 		//b1=s0;
 		//b3=s0;
 
-		x0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x00))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
-		x1 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x08))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
-		x2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x10))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
-		x3 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((const __m128i *)(src + i*src_stride + 0x18))), _mm_loadu_si128((const __m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
+		x0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x00))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x00)), 0x1);
+		x1 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x08))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x08)), 0x1);
+		x2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x10))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x10)), 0x1);
+		x3 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((const simde__m128i *)(src + i*src_stride + 0x18))), simde_mm_loadu_si128((const simde__m128i *)(src + (i + 1)*src_stride + 0x18)), 0x1);
 
 		// 32-point butterfly
-		x2 = _mm256_shuffle_epi8(x2, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
-		x3 = _mm256_shuffle_epi8(x3, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		x2 = simde_mm256_shuffle_epi8(x2, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		x3 = simde_mm256_shuffle_epi8(x3, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-		y0 = _mm256_add_epi16(x0, x3);
-		y1 = _mm256_add_epi16(x1, x2);
+		y0 = simde_mm256_add_epi16(x0, x3);
+		y1 = simde_mm256_add_epi16(x1, x2);
 
-		y2 = _mm256_sub_epi16(x0, x3);
-		y3 = _mm256_sub_epi16(x1, x2);
+		y2 = simde_mm256_sub_epi16(x0, x3);
+		y3 = simde_mm256_sub_epi16(x1, x2);
 
 		// 16-point butterfly
-		y1 = _mm256_shuffle_epi8(y1, _mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
+		y1 = simde_mm256_shuffle_epi8(y1, simde_mm256_setr_epi8(14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1, 14, 15, 12, 13, 10, 11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1));
 
-		x0 = _mm256_add_epi16(y0, y1);
-		x1 = _mm256_sub_epi16(y0, y1);
+		x0 = simde_mm256_add_epi16(y0, y1);
+		x1 = simde_mm256_sub_epi16(y0, y1);
 
 		x2 = y2;
 		x3 = y3;
 
-		a0 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
-		a0 = _mm256_add_epi32(a0, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
+		a0 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[0]);
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[2]));
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[4]));
+		a0 = simde_mm256_add_epi32(a0, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[6]));
 
-		//a1 = _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
-		//a1 = _mm256_add_epi32(a1, _mm256_madd_epi16(_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
+		//a1 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x00), coeff32[1]);
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0x55), coeff32[3]));
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xaa), coeff32[5]));
+		//a1 = simde_mm256_add_epi32(a1, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x0, 0xff), coeff32[7]));
 
-		a2 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
-		a2 = _mm256_add_epi32(a2, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
+		a2 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[8]);
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[10]));
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[12]));
+		a2 = simde_mm256_add_epi32(a2, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[14]));
 
-		//a3 = _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
-		//a3 = _mm256_add_epi32(a3, _mm256_madd_epi16(_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
+		//a3 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x00), coeff32[9]);
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0x55), coeff32[11]));
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xaa), coeff32[13]));
+		//a3 = simde_mm256_add_epi32(a3, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x1, 0xff), coeff32[15]));
 
-		a4 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
-		a4 = _mm256_add_epi32(a4, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
+		a4 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[16]);
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[20]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[24]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[28]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[32]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[36]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[40]));
+		a4 = simde_mm256_add_epi32(a4, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[44]));
 
-		a5 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
-		a5 = _mm256_add_epi32(a5, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
+		a5 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[17]);
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[21]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[25]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[29]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[33]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[37]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[41]));
+		a5 = simde_mm256_add_epi32(a5, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[45]));
 
-		//a6 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
-		//a6 = _mm256_add_epi32(a6, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
+		//a6 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[18]);
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[22]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[26]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[30]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[34]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[38]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[42]));
+		//a6 = simde_mm256_add_epi32(a6, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[46]));
 		//
-		//a7 = _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
-		//a7 = _mm256_add_epi32(a7, _mm256_madd_epi16(_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
+		//a7 = simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x00), coeff32[19]);
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0x55), coeff32[23]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xaa), coeff32[27]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x2, 0xff), coeff32[31]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x00), coeff32[35]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0x55), coeff32[39]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xaa), coeff32[43]));
+		//a7 = simde_mm256_add_epi32(a7, simde_mm256_madd_epi16(simde_mm256_shuffle_epi32(x3, 0xff), coeff32[47]));
 
-		b0 = _mm256_sra_epi32(_mm256_add_epi32(a0, o0), s0);
-		//b1 = _mm256_sra_epi32(_mm256_add_epi32(a1, o0), s0);
-		b2 = _mm256_sra_epi32(_mm256_add_epi32(a2, o0), s0);
-		//b3 = _mm256_sra_epi32(_mm256_add_epi32(a3, o0), s0);
-		b4 = _mm256_sra_epi32(_mm256_add_epi32(a4, o0), s0);
-		b5 = _mm256_sra_epi32(_mm256_add_epi32(a5, o0), s0);
-		//b6 = _mm256_sra_epi32(_mm256_add_epi32(a6, o0), s0);
-		//b7 = _mm256_sra_epi32(_mm256_add_epi32(a7, o0), s0);
+		b0 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a0, o0), s0);
+		//b1 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a1, o0), s0);
+		b2 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a2, o0), s0);
+		//b3 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a3, o0), s0);
+		b4 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a4, o0), s0);
+		b5 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a5, o0), s0);
+		//b6 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a6, o0), s0);
+		//b7 = simde_mm256_sra_epi32(simde_mm256_add_epi32(a7, o0), s0);
 
-		x0 = _mm256_packs_epi32(b0, b0);
-		x1 = _mm256_packs_epi32(b2, b2);
-		x2 = _mm256_packs_epi32(b4, b5);
-		//x3 = _mm256_packs_epi32(b6, b7);
+		x0 = simde_mm256_packs_epi32(b0, b0);
+		x1 = simde_mm256_packs_epi32(b2, b2);
+		x2 = simde_mm256_packs_epi32(b4, b5);
+		//x3 = simde_mm256_packs_epi32(b6, b7);
 
-		y0 = _mm256_unpacklo_epi16(x0, x1);
-		//y1 = _mm256_unpackhi_epi16(x0, x1);
+		y0 = simde_mm256_unpacklo_epi16(x0, x1);
+		//y1 = simde_mm256_unpackhi_epi16(x0, x1);
 		y2 = x2;
 		//y3 = x3;
-		x0 = _mm256_unpacklo_epi16(y0, y2);
-		//---//  x1 = _mm256_unpackhi_epi16(y0, y2);
-		//x2 = _mm256_unpacklo_epi16(y1, y3);
-		//x3 = _mm256_unpackhi_epi16(y1, y3);
+		x0 = simde_mm256_unpacklo_epi16(y0, y2);
+		//---//  x1 = simde_mm256_unpackhi_epi16(y0, y2);
+		//x2 = simde_mm256_unpacklo_epi16(y1, y3);
+		//x3 = simde_mm256_unpackhi_epi16(y1, y3);
 
-		//---// y0 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 0)), _mm256_extracti128_si256(x1, 0), 0x1);
-		//---//y2 = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm256_extracti128_si256(x0, 1)), _mm256_extracti128_si256(x1, 1), 0x1);
+		//---// y0 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 0)), simde_mm256_extracti128_si256(x1, 0), 0x1);
+		//---//y2 = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm256_extracti128_si256(x0, 1)), simde_mm256_extracti128_si256(x1, 1), 0x1);
 
-		//---// _mm256_storeu_si256((__m256i *)(dst + i*dst_stride), y0);
-		//---// _mm256_storeu_si256((__m256i *)(dst + (i + 1)*dst_stride), y2);
+		//---// simde_mm256_storeu_si256((simde__m256i *)(dst + i*dst_stride), y0);
+		//---// simde_mm256_storeu_si256((simde__m256i *)(dst + (i + 1)*dst_stride), y2);
 
-		_mm_storeu_si128((__m128i *)(dst + i*dst_stride), _mm256_extracti128_si256(x0, 0));
-		_mm_storeu_si128((__m128i *)(dst + (i + 1)*dst_stride), _mm256_extracti128_si256(x0, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + i*dst_stride), simde_mm256_extracti128_si256(x0, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + (i + 1)*dst_stride), simde_mm256_extracti128_si256(x0, 1));
 
 
-		//_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x10), x2);
-		//_mm256_storeu_si256((__m256i *)(dst+i*dst_stride+0x18), x3);
+		//simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x10), x2);
+		//simde_mm256_storeu_si256((simde__m256i *)(dst+i*dst_stride+0x18), x3);
 	}
 }
 void PfreqN4FirstTranspose32_AVX2_INTRIN(
@@ -1314,61 +1313,61 @@ void PfreqN4FirstTranspose32_AVX2_INTRIN(
 	EB_U32 i;
 	for (i = 0; i < 4; i++)
 	{
-		__m256i a0, a1, a2, a3, a4, a5, a6, a7;
-		__m256i b0, b1, b2, b3, b4, b5, b6, b7;
+		simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+		simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-		a0 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 0)*src_stride));
-		a1 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 1)*src_stride));
-		a2 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 2)*src_stride));
-		a3 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 3)*src_stride));
-		a4 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 4)*src_stride));
-		a5 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 5)*src_stride));
-		a6 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 6)*src_stride));
-		a7 = _mm256_loadu_si256((const __m256i *)(src + (8 * i + 7)*src_stride));
+		a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 0)*src_stride));
+		a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 1)*src_stride));
+		a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 2)*src_stride));
+		a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 3)*src_stride));
+		a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 4)*src_stride));
+		a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 5)*src_stride));
+		a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 6)*src_stride));
+		a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (8 * i + 7)*src_stride));
 
-		b0 = _mm256_unpacklo_epi16(a0, a4);
-		b1 = _mm256_unpacklo_epi16(a1, a5);
-		b2 = _mm256_unpacklo_epi16(a2, a6);
-		b3 = _mm256_unpacklo_epi16(a3, a7);
-		b4 = _mm256_unpackhi_epi16(a0, a4);
-		b5 = _mm256_unpackhi_epi16(a1, a5);
-		b6 = _mm256_unpackhi_epi16(a2, a6);
-		b7 = _mm256_unpackhi_epi16(a3, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a4);
+		b1 = simde_mm256_unpacklo_epi16(a1, a5);
+		b2 = simde_mm256_unpacklo_epi16(a2, a6);
+		b3 = simde_mm256_unpacklo_epi16(a3, a7);
+		b4 = simde_mm256_unpackhi_epi16(a0, a4);
+		b5 = simde_mm256_unpackhi_epi16(a1, a5);
+		b6 = simde_mm256_unpackhi_epi16(a2, a6);
+		b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-		a0 = _mm256_unpacklo_epi16(b0, b2);
-		a1 = _mm256_unpacklo_epi16(b1, b3);
-		a2 = _mm256_unpackhi_epi16(b0, b2);
-		a3 = _mm256_unpackhi_epi16(b1, b3);
-		a4 = _mm256_unpacklo_epi16(b4, b6);
-		a5 = _mm256_unpacklo_epi16(b5, b7);
-		a6 = _mm256_unpackhi_epi16(b4, b6);
-		a7 = _mm256_unpackhi_epi16(b5, b7);
+		a0 = simde_mm256_unpacklo_epi16(b0, b2);
+		a1 = simde_mm256_unpacklo_epi16(b1, b3);
+		a2 = simde_mm256_unpackhi_epi16(b0, b2);
+		a3 = simde_mm256_unpackhi_epi16(b1, b3);
+		a4 = simde_mm256_unpacklo_epi16(b4, b6);
+		a5 = simde_mm256_unpacklo_epi16(b5, b7);
+		a6 = simde_mm256_unpackhi_epi16(b4, b6);
+		a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-		b0 = _mm256_unpacklo_epi16(a0, a1);
-		b1 = _mm256_unpackhi_epi16(a0, a1);
-		b2 = _mm256_unpacklo_epi16(a2, a3);
-		b3 = _mm256_unpackhi_epi16(a2, a3);
-		b4 = _mm256_unpacklo_epi16(a4, a5);
-		b5 = _mm256_unpackhi_epi16(a4, a5);
-		b6 = _mm256_unpacklo_epi16(a6, a7);
-		b7 = _mm256_unpackhi_epi16(a6, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a1);
+		b1 = simde_mm256_unpackhi_epi16(a0, a1);
+		b2 = simde_mm256_unpacklo_epi16(a2, a3);
+		b3 = simde_mm256_unpackhi_epi16(a2, a3);
+		b4 = simde_mm256_unpacklo_epi16(a4, a5);
+		b5 = simde_mm256_unpackhi_epi16(a4, a5);
+		b6 = simde_mm256_unpacklo_epi16(a6, a7);
+		b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-		_mm_storeu_si128((__m128i *)(dst + 0 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 0));
-		_mm_storeu_si128((__m128i *)(dst + 1 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 0));
-		_mm_storeu_si128((__m128i *)(dst + 2 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 0));
-		_mm_storeu_si128((__m128i *)(dst + 3 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 0));
-		_mm_storeu_si128((__m128i *)(dst + 4 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 0));
-		_mm_storeu_si128((__m128i *)(dst + 5 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 0));
-		_mm_storeu_si128((__m128i *)(dst + 6 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 0));
-		_mm_storeu_si128((__m128i *)(dst + 7 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 0));
-		_mm_storeu_si128((__m128i *)(dst + 8 * dst_stride + 8 * i), _mm256_extracti128_si256(b0, 1));
-		_mm_storeu_si128((__m128i *)(dst + 9 * dst_stride + 8 * i), _mm256_extracti128_si256(b1, 1));
-		_mm_storeu_si128((__m128i *)(dst + 10 * dst_stride + 8 * i), _mm256_extracti128_si256(b2, 1));
-		_mm_storeu_si128((__m128i *)(dst + 11 * dst_stride + 8 * i), _mm256_extracti128_si256(b3, 1));
-		_mm_storeu_si128((__m128i *)(dst + 12 * dst_stride + 8 * i), _mm256_extracti128_si256(b4, 1));
-		_mm_storeu_si128((__m128i *)(dst + 13 * dst_stride + 8 * i), _mm256_extracti128_si256(b5, 1));
-		_mm_storeu_si128((__m128i *)(dst + 14 * dst_stride + 8 * i), _mm256_extracti128_si256(b6, 1));
-		_mm_storeu_si128((__m128i *)(dst + 15 * dst_stride + 8 * i), _mm256_extracti128_si256(b7, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 0 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 1 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 2 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 3 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 4 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 5 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 6 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 7 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 8 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b0, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 9 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b1, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 10 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b2, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 11 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b3, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 12 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b4, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 13 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b5, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 14 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b6, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 15 * dst_stride + 8 * i), simde_mm256_extracti128_si256(b7, 1));
 	}
 }
 void PfreqN4SecTranspose32_AVX2_INTRIN(
@@ -1381,61 +1380,61 @@ void PfreqN4SecTranspose32_AVX2_INTRIN(
 	// for (i = 0; i < 4; i++)
 	//i = 0;
 	{
-		__m256i a0, a1, a2, a3, a4, a5, a6, a7;
-		__m256i b0, b1, b2, b3, b4, b5, b6, b7;
+		simde__m256i a0, a1, a2, a3, a4, a5, a6, a7;
+		simde__m256i b0, b1, b2, b3, b4, b5, b6, b7;
 
-		a0 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */0)*src_stride));
-		a1 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */1)*src_stride));
-		a2 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */2)*src_stride));
-		a3 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */3)*src_stride));
-		a4 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */4)*src_stride));
-		a5 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */5)*src_stride));
-		a6 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */6)*src_stride));
-		a7 = _mm256_loadu_si256((const __m256i *)(src + (/*8 * i + */7)*src_stride));
+		a0 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */0)*src_stride));
+		a1 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */1)*src_stride));
+		a2 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */2)*src_stride));
+		a3 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */3)*src_stride));
+		a4 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */4)*src_stride));
+		a5 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */5)*src_stride));
+		a6 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */6)*src_stride));
+		a7 = simde_mm256_loadu_si256((const simde__m256i *)(src + (/*8 * i + */7)*src_stride));
 
-		b0 = _mm256_unpacklo_epi16(a0, a4);
-		b1 = _mm256_unpacklo_epi16(a1, a5);
-		b2 = _mm256_unpacklo_epi16(a2, a6);
-		b3 = _mm256_unpacklo_epi16(a3, a7);
-		b4 = _mm256_unpackhi_epi16(a0, a4);
-		b5 = _mm256_unpackhi_epi16(a1, a5);
-		b6 = _mm256_unpackhi_epi16(a2, a6);
-		b7 = _mm256_unpackhi_epi16(a3, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a4);
+		b1 = simde_mm256_unpacklo_epi16(a1, a5);
+		b2 = simde_mm256_unpacklo_epi16(a2, a6);
+		b3 = simde_mm256_unpacklo_epi16(a3, a7);
+		b4 = simde_mm256_unpackhi_epi16(a0, a4);
+		b5 = simde_mm256_unpackhi_epi16(a1, a5);
+		b6 = simde_mm256_unpackhi_epi16(a2, a6);
+		b7 = simde_mm256_unpackhi_epi16(a3, a7);
 
-		a0 = _mm256_unpacklo_epi16(b0, b2);
-		a1 = _mm256_unpacklo_epi16(b1, b3);
-		a2 = _mm256_unpackhi_epi16(b0, b2);
-		a3 = _mm256_unpackhi_epi16(b1, b3);
-		a4 = _mm256_unpacklo_epi16(b4, b6);
-		a5 = _mm256_unpacklo_epi16(b5, b7);
-		a6 = _mm256_unpackhi_epi16(b4, b6);
-		a7 = _mm256_unpackhi_epi16(b5, b7);
+		a0 = simde_mm256_unpacklo_epi16(b0, b2);
+		a1 = simde_mm256_unpacklo_epi16(b1, b3);
+		a2 = simde_mm256_unpackhi_epi16(b0, b2);
+		a3 = simde_mm256_unpackhi_epi16(b1, b3);
+		a4 = simde_mm256_unpacklo_epi16(b4, b6);
+		a5 = simde_mm256_unpacklo_epi16(b5, b7);
+		a6 = simde_mm256_unpackhi_epi16(b4, b6);
+		a7 = simde_mm256_unpackhi_epi16(b5, b7);
 
-		b0 = _mm256_unpacklo_epi16(a0, a1);
-		b1 = _mm256_unpackhi_epi16(a0, a1);
-		b2 = _mm256_unpacklo_epi16(a2, a3);
-		b3 = _mm256_unpackhi_epi16(a2, a3);
-		b4 = _mm256_unpacklo_epi16(a4, a5);
-		b5 = _mm256_unpackhi_epi16(a4, a5);
-		b6 = _mm256_unpacklo_epi16(a6, a7);
-		b7 = _mm256_unpackhi_epi16(a6, a7);
+		b0 = simde_mm256_unpacklo_epi16(a0, a1);
+		b1 = simde_mm256_unpackhi_epi16(a0, a1);
+		b2 = simde_mm256_unpacklo_epi16(a2, a3);
+		b3 = simde_mm256_unpackhi_epi16(a2, a3);
+		b4 = simde_mm256_unpacklo_epi16(a4, a5);
+		b5 = simde_mm256_unpackhi_epi16(a4, a5);
+		b6 = simde_mm256_unpacklo_epi16(a6, a7);
+		b7 = simde_mm256_unpackhi_epi16(a6, a7);
 
-		_mm_storeu_si128((__m128i *)(dst + 0 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b0, 0));
-		_mm_storeu_si128((__m128i *)(dst + 1 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b1, 0));
-		_mm_storeu_si128((__m128i *)(dst + 2 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b2, 0));
-		_mm_storeu_si128((__m128i *)(dst + 3 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b3, 0));
-		_mm_storeu_si128((__m128i *)(dst + 4 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b4, 0));
-		_mm_storeu_si128((__m128i *)(dst + 5 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b5, 0));
-		_mm_storeu_si128((__m128i *)(dst + 6 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b6, 0));
-		_mm_storeu_si128((__m128i *)(dst + 7 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b7, 0));
-		_mm_storeu_si128((__m128i *)(dst + 8 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b0, 1));
-		_mm_storeu_si128((__m128i *)(dst + 9 * dst_stride /*+ 8 * i */), _mm256_extracti128_si256(b1, 1));
-		_mm_storeu_si128((__m128i *)(dst + 10 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b2, 1));
-		_mm_storeu_si128((__m128i *)(dst + 11 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b3, 1));
-		_mm_storeu_si128((__m128i *)(dst + 12 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b4, 1));
-		_mm_storeu_si128((__m128i *)(dst + 13 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b5, 1));
-		_mm_storeu_si128((__m128i *)(dst + 14 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b6, 1));
-		_mm_storeu_si128((__m128i *)(dst + 15 * dst_stride/* + 8 * i*/), _mm256_extracti128_si256(b7, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 0 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b0, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 1 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b1, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 2 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b2, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 3 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b3, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 4 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b4, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 5 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b5, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 6 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b6, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 7 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b7, 0));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 8 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b0, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 9 * dst_stride /*+ 8 * i */), simde_mm256_extracti128_si256(b1, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 10 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b2, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 11 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b3, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 12 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b4, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 13 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b5, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 14 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b6, 1));
+		simde_mm_storeu_si128((simde__m128i *)(dst + 15 * dst_stride/* + 8 * i*/), simde_mm256_extracti128_si256(b7, 1));
 	}
 }
 void PfreqN4Transform32x32_AVX2_INTRIN(
@@ -1487,60 +1486,60 @@ void MatMult4x4_OutBuff_AVX2_INTRIN(
 	EB_U32*              nonzerocoeff)
 
 {
-	__m256i z = _mm256_setzero_si256();
-	__m128i a, b;
-	__m256i coeffTemp, a0, a1, b0, b1, ymm_computed, MaskingMatrix, offsetREG, coeffTempORG;
+	simde__m256i z = simde_mm256_setzero_si256();
+	simde__m128i a, b;
+	simde__m256i coeffTemp, a0, a1, b0, b1, ymm_computed, MaskingMatrix, offsetREG, coeffTempORG;
 	(void)computeSize;
 
-	coeffTemp = a0 = a1 = b0 = b1 = ymm_computed = MaskingMatrix = offsetREG = _mm256_setzero_si256();
+	coeffTemp = a0 = a1 = b0 = b1 = ymm_computed = MaskingMatrix = offsetREG = simde_mm256_setzero_si256();
 
 	// prepare Shift REG
-	__m128i PMP_PRECISION_REG = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum); //_mm_set1_epi16((EB_U16)shiftNum);//_mm_set1_epi32(shiftNum);
+	simde__m128i PMP_PRECISION_REG = simde_mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum); //simde_mm_set1_epi16((EB_U16)shiftNum);//simde_mm_set1_epi32(shiftNum);
 
 	//prepare the offset
-	offsetREG = _mm256_set1_epi32(offset);
+	offsetREG = simde_mm256_set1_epi32(offset);
 
 	//load maskingMatrix_new
-	MaskingMatrix = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)maskingMatrix), _mm_loadl_epi64((__m128i*)(maskingMatrix + maskingMatrixStride)))), _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)(maskingMatrix + 2 * maskingMatrixStride)), _mm_loadl_epi64((__m128i*)(maskingMatrix + 3 * maskingMatrixStride))), 0x1);
+	MaskingMatrix = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)maskingMatrix), simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + maskingMatrixStride)))), simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + 2 * maskingMatrixStride)), simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + 3 * maskingMatrixStride))), 0x1);
 
 	//load coefftemp
-	a = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)coeff), _mm_loadl_epi64((__m128i*)(coeff + coeffStride))); // 1st and 2nd row of the 4x4 block
-	b = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)(coeff + 2 * coeffStride)), _mm_loadl_epi64((__m128i*)(coeff + 3 * coeffStride))); // 3rd and 4th row of the 4x4 block
-	coeffTemp = _mm256_insertf128_si256(_mm256_castsi128_si256(a), b, 0x1); // the 4x4 block is now loaded
+	a = simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)coeff), simde_mm_loadl_epi64((simde__m128i*)(coeff + coeffStride))); // 1st and 2nd row of the 4x4 block
+	b = simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)(coeff + 2 * coeffStride)), simde_mm_loadl_epi64((simde__m128i*)(coeff + 3 * coeffStride))); // 3rd and 4th row of the 4x4 block
+	coeffTemp = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(a), b, 0x1); // the 4x4 block is now loaded
 
 	coeffTempORG = coeffTemp;
 	//Absolute val
-	coeffTemp = _mm256_abs_epi16(coeffTemp);
+	coeffTemp = simde_mm256_abs_epi16(coeffTemp);
 
-	a0 = _mm256_mullo_epi16(coeffTemp, MaskingMatrix);
-	a1 = _mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
+	a0 = simde_mm256_mullo_epi16(coeffTemp, MaskingMatrix);
+	a1 = simde_mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
 
 
-	b0 = _mm256_unpacklo_epi16(a0, a1);
-	b1 = _mm256_unpackhi_epi16(a0, a1);
+	b0 = simde_mm256_unpacklo_epi16(a0, a1);
+	b1 = simde_mm256_unpackhi_epi16(a0, a1);
 
-	b0 = _mm256_add_epi32(b0, offsetREG);
-	b1 = _mm256_add_epi32(b1, offsetREG);
+	b0 = simde_mm256_add_epi32(b0, offsetREG);
+	b1 = simde_mm256_add_epi32(b1, offsetREG);
 
 	//Shift right by PMP_PRECISION_REG
-	b0 = _mm256_sra_epi32(b0, PMP_PRECISION_REG);
-	b1 = _mm256_sra_epi32(b1, PMP_PRECISION_REG);
+	b0 = simde_mm256_sra_epi32(b0, PMP_PRECISION_REG);
+	b1 = simde_mm256_sra_epi32(b1, PMP_PRECISION_REG);
 
 	//coefftemp in c
-	ymm_computed = _mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from a and b to packed 16-bit integers using signed saturation, and store the results in dst.
-	z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(ymm_computed, _mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
+	ymm_computed = simde_mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from a and b to packed 16-bit integers using signed saturation, and store the results in dst.
+	z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(ymm_computed, simde_mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
 
-	ymm_computed = _mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
+	ymm_computed = simde_mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
 
-	a = _mm256_extracti128_si256(ymm_computed, 0);
-	b = _mm256_extracti128_si256(ymm_computed, 1);
-	_mm_storel_epi64((__m128i *) coeffOut, a);
-	_mm_storel_epi64((__m128i *)(coeffOut + 1 * coeffOutStride), _mm_srli_si128(a, 8));
-	_mm_storel_epi64((__m128i *)(coeffOut + 2 * coeffOutStride), b);
-	_mm_storel_epi64((__m128i *)(coeffOut + 3 * coeffOutStride), _mm_srli_si128(b, 8));
+	a = simde_mm256_extracti128_si256(ymm_computed, 0);
+	b = simde_mm256_extracti128_si256(ymm_computed, 1);
+	simde_mm_storel_epi64((simde__m128i *) coeffOut, a);
+	simde_mm_storel_epi64((simde__m128i *)(coeffOut + 1 * coeffOutStride), simde_mm_srli_si128(a, 8));
+	simde_mm_storel_epi64((simde__m128i *)(coeffOut + 2 * coeffOutStride), b);
+	simde_mm_storel_epi64((simde__m128i *)(coeffOut + 3 * coeffOutStride), simde_mm_srli_si128(b, 8));
 
-	z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 8));
-	*nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+	z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 8));
+	*nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 
 }
 
@@ -1557,60 +1556,60 @@ void MatMult4x4_AVX2_INTRIN(
 	EB_U32*              nonzerocoeff)
 
 {
-		__m256i z = _mm256_setzero_si256();
-		__m128i a, b;
-		__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,offsetREG,coeffTempORG;
+		simde__m256i z = simde_mm256_setzero_si256();
+		simde__m128i a, b;
+		simde__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,offsetREG,coeffTempORG;
         (void)computeSize;
 
-        coeffTemp = a0 = a1 = b0 = b1 = ymm_computed = MaskingMatrix = offsetREG = _mm256_setzero_si256();
+        coeffTemp = a0 = a1 = b0 = b1 = ymm_computed = MaskingMatrix = offsetREG = simde_mm256_setzero_si256();
 
 		// prepare Shift REG
-        __m128i PMP_PRECISION_REG = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum); //_mm_set1_epi16((EB_U16)shiftNum);//_mm_set1_epi32(shiftNum);
+        simde__m128i PMP_PRECISION_REG = simde_mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum); //simde_mm_set1_epi16((EB_U16)shiftNum);//simde_mm_set1_epi32(shiftNum);
 
 		//prepare the offset
-		offsetREG = _mm256_set1_epi32(offset);
+		offsetREG = simde_mm256_set1_epi32(offset);
 
 		//load maskingMatrix_new
-        MaskingMatrix = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)maskingMatrix), _mm_loadl_epi64((__m128i*)(maskingMatrix + maskingMatrixStride)))), _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)(maskingMatrix + 2 * maskingMatrixStride)), _mm_loadl_epi64((__m128i*)(maskingMatrix + 3 * maskingMatrixStride))), 0x1);
+        MaskingMatrix = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)maskingMatrix), simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + maskingMatrixStride)))), simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + 2 * maskingMatrixStride)), simde_mm_loadl_epi64((simde__m128i*)(maskingMatrix + 3 * maskingMatrixStride))), 0x1);
 
 		//load coefftemp
-		a = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)coeff), _mm_loadl_epi64((__m128i*)(coeff + coeffStride))); // 1st and 2nd row of the 4x4 block
-		b = _mm_unpacklo_epi64(_mm_loadl_epi64((__m128i*)(coeff + 2 * coeffStride)), _mm_loadl_epi64((__m128i*)(coeff + 3 * coeffStride))); // 3rd and 4th row of the 4x4 block
-		coeffTemp = _mm256_insertf128_si256(_mm256_castsi128_si256( a),b,0x1); // the 4x4 block is now loaded
+		a = simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)coeff), simde_mm_loadl_epi64((simde__m128i*)(coeff + coeffStride))); // 1st and 2nd row of the 4x4 block
+		b = simde_mm_unpacklo_epi64(simde_mm_loadl_epi64((simde__m128i*)(coeff + 2 * coeffStride)), simde_mm_loadl_epi64((simde__m128i*)(coeff + 3 * coeffStride))); // 3rd and 4th row of the 4x4 block
+		coeffTemp = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256( a),b,0x1); // the 4x4 block is now loaded
 
 		coeffTempORG = coeffTemp;
         //Absolute val
-		coeffTemp = _mm256_abs_epi16(coeffTemp);
+		coeffTemp = simde_mm256_abs_epi16(coeffTemp);
 
-		a0 = _mm256_mullo_epi16(coeffTemp, MaskingMatrix);
-        a1 = _mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
+		a0 = simde_mm256_mullo_epi16(coeffTemp, MaskingMatrix);
+        a1 = simde_mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
 
 
-		b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
+		b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
 
-		b0 = _mm256_add_epi32(b0, offsetREG);
-        b1 = _mm256_add_epi32(b1, offsetREG);
+		b0 = simde_mm256_add_epi32(b0, offsetREG);
+        b1 = simde_mm256_add_epi32(b1, offsetREG);
 
 		//Shift right by PMP_PRECISION_REG
-		b0 = _mm256_sra_epi32(b0, PMP_PRECISION_REG);
-        b1 = _mm256_sra_epi32(b1, PMP_PRECISION_REG);
+		b0 = simde_mm256_sra_epi32(b0, PMP_PRECISION_REG);
+        b1 = simde_mm256_sra_epi32(b1, PMP_PRECISION_REG);
 
 		//coefftemp in c
-		ymm_computed = _mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from a and b to packed 16-bit integers using signed saturation, and store the results in dst.
-		z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(ymm_computed, _mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
+		ymm_computed = simde_mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from a and b to packed 16-bit integers using signed saturation, and store the results in dst.
+		z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(ymm_computed, simde_mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
 
-		ymm_computed = _mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
+		ymm_computed = simde_mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
 
-		a = _mm256_extracti128_si256(ymm_computed, 0);
-        b = _mm256_extracti128_si256(ymm_computed, 1);
-        _mm_storel_epi64((__m128i *)coeff, a);
-        _mm_storel_epi64((__m128i *)(coeff + coeffStride), _mm_srli_si128(a, 8));
-        _mm_storel_epi64((__m128i *)(coeff + 2 * coeffStride), b);
-        _mm_storel_epi64((__m128i *)(coeff + 3 * coeffStride), _mm_srli_si128(b, 8));
+		a = simde_mm256_extracti128_si256(ymm_computed, 0);
+        b = simde_mm256_extracti128_si256(ymm_computed, 1);
+        simde_mm_storel_epi64((simde__m128i *)coeff, a);
+        simde_mm_storel_epi64((simde__m128i *)(coeff + coeffStride), simde_mm_srli_si128(a, 8));
+        simde_mm_storel_epi64((simde__m128i *)(coeff + 2 * coeffStride), b);
+        simde_mm_storel_epi64((simde__m128i *)(coeff + 3 * coeffStride), simde_mm_srli_si128(b, 8));
 
-		  z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 8));
-          *nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+		  z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 8));
+          *nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 
 }
 /*******************************************MatMult8x8_AVX2_INTRIN**************************************************/
@@ -1625,61 +1624,61 @@ void MatMult8x8_AVX2_INTRIN(
 	EB_U32*              nonzerocoeff)
 {
 	unsigned row;
-	__m256i z = _mm256_setzero_si256();
-	//__m128i a, b;
-	__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,coeffTempORG;
+	simde__m256i z = simde_mm256_setzero_si256();
+	//simde__m128i a, b;
+	simde__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,coeffTempORG;
 
-    coeffTemp = a0 = a1 = b0 = b1 = ymm_computed =MaskingMatrix=  _mm256_setzero_si256();
+    coeffTemp = a0 = a1 = b0 = b1 = ymm_computed =MaskingMatrix=  simde_mm256_setzero_si256();
 
 	// prepare Shift REG
-    __m128i PMP_PRECISION_REG = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum);//_mm_set1_epi32(shiftNum);
+    simde__m128i PMP_PRECISION_REG = simde_mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum);//simde_mm_set1_epi32(shiftNum);
 
 	//prepare the offset
-	__m256i offsetREG = _mm256_set1_epi32(offset);
+	simde__m256i offsetREG = simde_mm256_set1_epi32(offset);
 	row = 0;
     do {
 
 		//load maskingMatrix_new
-        MaskingMatrix = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(maskingMatrix + maskingMatrixStride*row))), _mm_loadu_si128((__m128i*)(maskingMatrix + maskingMatrixStride*(row + 1))), 0x1);
+        MaskingMatrix = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((simde__m128i*)(maskingMatrix + maskingMatrixStride*row))), simde_mm_loadu_si128((simde__m128i*)(maskingMatrix + maskingMatrixStride*(row + 1))), 0x1);
 
 		//load coefftemp
-		coeffTemp = _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)(coeff + coeffStride*row))),
-                _mm_loadu_si128((__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
+		coeffTemp = simde_mm256_insertf128_si256(simde_mm256_castsi128_si256(simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*row))),
+                simde_mm_loadu_si128((simde__m128i*)(coeff + coeffStride*(row + 1))), 0x1);
 
 		coeffTempORG = coeffTemp;
         //Absolute val
-		coeffTemp = _mm256_abs_epi16(coeffTemp);
+		coeffTemp = simde_mm256_abs_epi16(coeffTemp);
 
 		//Multiply
-		a0 = _mm256_mullo_epi16(coeffTemp, MaskingMatrix);
-        a1 = _mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
+		a0 = simde_mm256_mullo_epi16(coeffTemp, MaskingMatrix);
+        a1 = simde_mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
 
 
-		b0 = _mm256_unpacklo_epi16(a0, a1);
-        b1 = _mm256_unpackhi_epi16(a0, a1);
+		b0 = simde_mm256_unpacklo_epi16(a0, a1);
+        b1 = simde_mm256_unpackhi_epi16(a0, a1);
 
 		//Add
-		b0 = _mm256_add_epi32(b0, offsetREG);
-        b1 = _mm256_add_epi32(b1, offsetREG);
+		b0 = simde_mm256_add_epi32(b0, offsetREG);
+        b1 = simde_mm256_add_epi32(b1, offsetREG);
 
 		//Shift right by PMP_PRECISION_REG
-        b0 = _mm256_sra_epi32(b0, PMP_PRECISION_REG);
-        b1 = _mm256_sra_epi32(b1, PMP_PRECISION_REG);
+        b0 = simde_mm256_sra_epi32(b0, PMP_PRECISION_REG);
+        b1 = simde_mm256_sra_epi32(b1, PMP_PRECISION_REG);
 
 		//coefftemp in c
-		ymm_computed = _mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from b0 and b1 to packed 16-bit integers using signed saturation, and store the results in dst.
-		z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(ymm_computed, _mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
+		ymm_computed = simde_mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from b0 and b1 to packed 16-bit integers using signed saturation, and store the results in dst.
+		z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(ymm_computed, simde_mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
 
-		ymm_computed = _mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
+		ymm_computed = simde_mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
 
-		_mm_storeu_si128((__m128i *)(coeff + coeffStride*row), _mm256_extracti128_si256(ymm_computed, 0));
-        _mm_storeu_si128((__m128i *)(coeff + coeffStride*(row + 1)), _mm256_extracti128_si256(ymm_computed, 1));
+		simde_mm_storeu_si128((simde__m128i *)(coeff + coeffStride*row), simde_mm256_extracti128_si256(ymm_computed, 0));
+        simde_mm_storeu_si128((simde__m128i *)(coeff + coeffStride*(row + 1)), simde_mm256_extracti128_si256(ymm_computed, 1));
 
 	    row += 2;
     } while (row < computeSize);
 
-	z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 7));
-    *nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+	z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 7));
+    *nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 
 }
 /***************************************MatMultNxN_AVX2_INTRIN****************************************************/
@@ -1695,17 +1694,17 @@ void MatMultNxN_AVX2_INTRIN(
 {
 
 	unsigned row,col;
-	__m256i z = _mm256_setzero_si256();
-	//__m128i a, b;
-	__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,coeffTempORG;
+	simde__m256i z = simde_mm256_setzero_si256();
+	//simde__m128i a, b;
+	simde__m256i coeffTemp,a0,a1,b0,b1,ymm_computed,MaskingMatrix,coeffTempORG;
 
-    coeffTemp = a0 = a1 = b0 = b1 = ymm_computed =MaskingMatrix  = _mm256_setzero_si256();
+    coeffTemp = a0 = a1 = b0 = b1 = ymm_computed =MaskingMatrix  = simde_mm256_setzero_si256();
 
 	// prepare Shift REG
-    __m128i PMP_PRECISION_REG = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum);//_mm_set1_epi32(shiftNum);
+    simde__m128i PMP_PRECISION_REG = simde_mm_set_epi16(0, 0, 0, 0, 0, 0, 0, (EB_S16)shiftNum);//simde_mm_set1_epi32(shiftNum);
 
 	//prepare the offset
-	__m256i offsetREG = _mm256_set1_epi32(offset);
+	simde__m256i offsetREG = simde_mm256_set1_epi32(offset);
 
 	row = 0;
 		do {
@@ -1713,39 +1712,39 @@ void MatMultNxN_AVX2_INTRIN(
 			do {
 
 				//load coefftemp
-				coeffTemp = _mm256_loadu_si256((__m256i *)(coeff + coeffStride*row + col));
+				coeffTemp = simde_mm256_loadu_si256((simde__m256i *)(coeff + coeffStride*row + col));
 
 				//load maskingMatrix_new
-                MaskingMatrix = _mm256_loadu_si256((__m256i *) (maskingMatrix + maskingMatrixStride*row + col));
+                MaskingMatrix = simde_mm256_loadu_si256((simde__m256i *) (maskingMatrix + maskingMatrixStride*row + col));
 
                 coeffTempORG = coeffTemp;
 
 				//Absolute val
-				coeffTemp = _mm256_abs_epi16(coeffTemp);
+				coeffTemp = simde_mm256_abs_epi16(coeffTemp);
 
 				//Multiply
-				a0 = _mm256_mullo_epi16(coeffTemp, MaskingMatrix);
-				a1 = _mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
+				a0 = simde_mm256_mullo_epi16(coeffTemp, MaskingMatrix);
+				a1 = simde_mm256_mulhi_epi16(coeffTemp, MaskingMatrix);
 
 
-				b0 = _mm256_unpacklo_epi16(a0, a1);
-				b1 = _mm256_unpackhi_epi16(a0, a1);
+				b0 = simde_mm256_unpacklo_epi16(a0, a1);
+				b1 = simde_mm256_unpackhi_epi16(a0, a1);
 
 				//Add
-				b0 = _mm256_add_epi32(b0, offsetREG);
-				b1 = _mm256_add_epi32(b1, offsetREG);
+				b0 = simde_mm256_add_epi32(b0, offsetREG);
+				b1 = simde_mm256_add_epi32(b1, offsetREG);
 
 				//Shift right by PMP_PRECISION_REG
-				b0 = _mm256_sra_epi32(b0, PMP_PRECISION_REG);
-				b1 = _mm256_sra_epi32(b1, PMP_PRECISION_REG);
+				b0 = simde_mm256_sra_epi32(b0, PMP_PRECISION_REG);
+				b1 = simde_mm256_sra_epi32(b1, PMP_PRECISION_REG);
 
 				//coefftemp in c
-				ymm_computed = _mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from b0 and b1 to packed 16-bit integers using signed saturation, and store the results in dst.
-				z = _mm256_sub_epi16(z, _mm256_cmpgt_epi16(ymm_computed, _mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
+				ymm_computed = simde_mm256_packs_epi32(b0, b1);//Convert packed 32-bit integers from b0 and b1 to packed 16-bit integers using signed saturation, and store the results in dst.
+				z = simde_mm256_sub_epi16(z, simde_mm256_cmpgt_epi16(ymm_computed, simde_mm256_setzero_si256())); //coeffTemp = (coeff[coeffLocation] < 0)? -coeffTemp : coeffTemp;
 
-				ymm_computed = _mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
+				ymm_computed = simde_mm256_sign_epi16(ymm_computed, coeffTempORG);// coeffTemp);
 
-				_mm256_storeu_si256((__m256i *)(coeff + coeffStride*row + col), ymm_computed);
+				simde_mm256_storeu_si256((simde__m256i *)(coeff + coeffStride*row + col), ymm_computed);
 
 			col += 16;
             } while (col < computeSize);
@@ -1753,7 +1752,7 @@ void MatMultNxN_AVX2_INTRIN(
 		row++;
         } while (row < computeSize);
 
-	z = _mm256_sad_epu8(z, _mm256_srli_si256(z, 7));
-    *nonzerocoeff = _mm_cvtsi128_si32(_mm_add_epi32(_mm256_extracti128_si256(z, 0), _mm256_extracti128_si256(z, 1)));
+	z = simde_mm256_sad_epu8(z, simde_mm256_srli_si256(z, 7));
+    *nonzerocoeff = simde_mm_cvtsi128_si32(simde_mm_add_epi32(simde_mm256_extracti128_si256(z, 0), simde_mm256_extracti128_si256(z, 1)));
 
 }

@@ -2718,9 +2718,9 @@ void EncodePassPreFetchRef(
                 for (counter = 0; counter < cuStats->size; counter++)
                 {
                     char const* p0 = (char const*)(src0Ptr + counter*contextPtr->mcpContext->localReferenceBlockL0->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                     char const* p1 = (char const*)(src0Ptr + counter*contextPtr->mcpContext->localReferenceBlockL0->strideY + (cuStats->size >> 1));
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
 
             }
@@ -2766,9 +2766,9 @@ void EncodePassPreFetchRef(
                 for (counter = 0; counter < cuStats->size; counter++)
                 {
                     char const* p0 = (char const*)(src1Ptr + counter*contextPtr->mcpContext->localReferenceBlockL1->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                     char const* p1 = (char const*)(src1Ptr + counter*contextPtr->mcpContext->localReferenceBlockL1->strideY + (cuStats->size >> 1));
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
 
             }
@@ -2815,7 +2815,7 @@ void EncodePassPreFetchRef(
                 for (counter = 0; counter < cuStats->size; counter++)
                 {
                     char const* p0 = (char const*)(src0Ptr + counter*refPicList0->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                 }
 
             }
@@ -2855,7 +2855,7 @@ void EncodePassPreFetchRef(
                 for (counter = 0; counter < cuStats->size; counter++)
                 {
                     char const* p1 = (char const*)(src1Ptr + counter*refPicList1->strideY);
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
 
             }
@@ -3189,7 +3189,7 @@ EB_EXTERN void EncodePass(
             const CodedUnitStats_t  *cuStats                = contextPtr->cuStats   = GetCodedUnitStats(cuItr);
             CodingUnit_t            *cuPtr                  = contextPtr->cuPtr     = lcuPtr->codedLeafArrayPtr[cuItr];
 
-            _mm_prefetch((const char *)cuStats, _MM_HINT_T0);
+            simde_mm_prefetch((const char *)cuStats, _MM_HINT_T0);
 
             contextPtr->cuOriginX = (EB_U16)(lcuOriginX + cuStats->originX);
             contextPtr->cuOriginY = (EB_U16)(lcuOriginY + cuStats->originY);

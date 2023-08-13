@@ -3,7 +3,7 @@
 * SPDX - License - Identifier: BSD - 2 - Clause - Patent
 */
 
-#include <immintrin.h>
+#include "../../../simde/simde/x86/avx2.h"
 
 #include "EbPackUnPack_Intrinsic_AVX2.h"
 #include "EbDefinitions.h"
@@ -21,8 +21,8 @@ void EB_ENC_msbUnPack2D_AVX512_INTRIN(
     EB_U32       height)
 {
     const EB_U32 CHUNK_SIZE = 64;
-    __m512i zmm_3 = _mm512_set1_epi16(0x0003);
-    __m512i zmm_perm = _mm512_set_epi64(7, 5, 3, 1, 6, 4, 2, 0);
+    simde__m512i zmm_3 = simde_mm512_set1_epi16(0x0003);
+    simde__m512i zmm_perm = simde_mm512_set_epi64(7, 5, 3, 1, 6, 4, 2, 0);
 
     EB_U32 x, y;
 
@@ -54,20 +54,20 @@ void EB_ENC_msbUnPack2D_AVX512_INTRIN(
             for (y = 0; y < numChunks; y++) {
                 // We process scan lines by elements of CHUNK_SIZE starting from an offset and after that we process the residual (or complimentary offset) going pixel by pixel
 
-                __m512i inPixel0 = _mm512_loadu_si512((__m512i*)in16BitBuffer);
-                __m512i inPixel1 = _mm512_loadu_si512((__m512i*)(in16BitBuffer + 32));
+                simde__m512i inPixel0 = simde_mm512_loadu_si512((simde__m512i*)in16BitBuffer);
+                simde__m512i inPixel1 = simde_mm512_loadu_si512((simde__m512i*)(in16BitBuffer + 32));
 
-                __m512i outn0_U8 = _mm512_slli_epi16(_mm512_packus_epi16(_mm512_and_si512(inPixel0, zmm_3), _mm512_and_si512(inPixel1, zmm_3)), 6);
-                __m512i out8_0_U8 = _mm512_packus_epi16(_mm512_srli_epi16(inPixel0, 2), _mm512_srli_epi16(inPixel1, 2));
+                simde__m512i outn0_U8 = simde_mm512_slli_epi16(simde_mm512_packus_epi16(simde_mm512_and_si512(inPixel0, zmm_3), simde_mm512_and_si512(inPixel1, zmm_3)), 6);
+                simde__m512i out8_0_U8 = simde_mm512_packus_epi16(simde_mm512_srli_epi16(inPixel0, 2), simde_mm512_srli_epi16(inPixel1, 2));
 
-                outn0_U8 = _mm512_permutexvar_epi64(zmm_perm, outn0_U8);
-                out8_0_U8 = _mm512_permutexvar_epi64(zmm_perm, out8_0_U8);
+                outn0_U8 = simde_mm512_permutexvar_epi64(zmm_perm, outn0_U8);
+                out8_0_U8 = simde_mm512_permutexvar_epi64(zmm_perm, out8_0_U8);
 
-                _mm512_stream_si512((__m512i*)out8BitBuffer, out8_0_U8);
+                simde_mm512_stream_si512((simde__m512i*)out8BitBuffer, out8_0_U8);
                 if (b_use_nt_store_for_both)
-                    _mm512_stream_si512((__m512i*)outnBitBuffer, outn0_U8);
+                    simde_mm512_stream_si512((simde__m512i*)outnBitBuffer, outn0_U8);
                 else
-                    _mm512_storeu_si512((__m512i*)outnBitBuffer, outn0_U8);
+                    simde_mm512_storeu_si512((simde__m512i*)outnBitBuffer, outn0_U8);
                 outnBitBuffer += CHUNK_SIZE;
                 out8BitBuffer += CHUNK_SIZE;
                 in16BitBuffer += CHUNK_SIZE;
@@ -104,7 +104,7 @@ void EB_ENC_msbUnPack2D_AVX2_INTRIN(
     const EB_U32 CHUNK_SIZE = 32;
     const EB_U32 out8BitBufferAlign = CHUNK_SIZE - ((size_t)out8BitBuffer & (CHUNK_SIZE - 1));
     const EB_U32 outnBitBufferAlign = CHUNK_SIZE - ((size_t)outnBitBuffer & (CHUNK_SIZE - 1));
-    const __m256i ymm_3 = _mm256_set1_epi16(0x0003);
+    const simde__m256i ymm_3 = simde_mm256_set1_epi16(0x0003);
     EB_U32 x, y;
 
     // We are going to use non temporal stores for both output buffers if they are aligned or can be aligned using same offset
@@ -131,19 +131,19 @@ void EB_ENC_msbUnPack2D_AVX2_INTRIN(
 
         for (y = 0; y < numChunks; y++) {
             // We process scan lines by elements of CHUNK_SIZE starting from an offset and after that we process the residual (or complimentary offset) going pixel by pixel
-            const __m256i inPixel0 = _mm256_loadu_si256((__m256i*)in16BitBuffer);
-            const __m256i inPixel1 = _mm256_loadu_si256((__m256i*)(in16BitBuffer + CHUNK_SIZE / 2));
-            __m256i outn0_U8 = _mm256_slli_epi16(_mm256_packus_epi16(_mm256_and_si256(inPixel0, ymm_3), _mm256_and_si256(inPixel1, ymm_3)), 6);
-            __m256i out8_0_U8 = _mm256_packus_epi16(_mm256_srli_epi16(inPixel0, 2), _mm256_srli_epi16(inPixel1, 2));
+            const simde__m256i inPixel0 = simde_mm256_loadu_si256((simde__m256i*)in16BitBuffer);
+            const simde__m256i inPixel1 = simde_mm256_loadu_si256((simde__m256i*)(in16BitBuffer + CHUNK_SIZE / 2));
+            simde__m256i outn0_U8 = simde_mm256_slli_epi16(simde_mm256_packus_epi16(simde_mm256_and_si256(inPixel0, ymm_3), simde_mm256_and_si256(inPixel1, ymm_3)), 6);
+            simde__m256i out8_0_U8 = simde_mm256_packus_epi16(simde_mm256_srli_epi16(inPixel0, 2), simde_mm256_srli_epi16(inPixel1, 2));
 
-            outn0_U8 = _mm256_permute4x64_epi64(outn0_U8, 0xD8);
-            out8_0_U8 = _mm256_permute4x64_epi64(out8_0_U8, 0xD8);
+            outn0_U8 = simde_mm256_permute4x64_epi64(outn0_U8, 0xD8);
+            out8_0_U8 = simde_mm256_permute4x64_epi64(out8_0_U8, 0xD8);
 
-            _mm256_stream_si256((__m256i*)out8BitBuffer, out8_0_U8);
+            simde_mm256_stream_si256((simde__m256i*)out8BitBuffer, out8_0_U8);
             if (b_use_nt_store_for_both)
-                _mm256_stream_si256((__m256i*)outnBitBuffer, outn0_U8);
+                simde_mm256_stream_si256((simde__m256i*)outnBitBuffer, outn0_U8);
             else
-                _mm256_storeu_si256((__m256i*)outnBitBuffer, outn0_U8);
+                simde_mm256_storeu_si256((simde__m256i*)outnBitBuffer, outn0_U8);
             outnBitBuffer += CHUNK_SIZE;
             out8BitBuffer += CHUNK_SIZE;
             in16BitBuffer += CHUNK_SIZE;

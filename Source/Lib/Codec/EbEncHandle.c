@@ -80,7 +80,7 @@ EB_U32 ASM_TYPES;
  * External Functions
  **************************************/
 static EB_ERRORTYPE InitH265EncoderHandle(EB_HANDLETYPE hComponent);
-#include <immintrin.h>
+#include "../../../simde/simde/x86/avx2.h"
 
 /**************************************
  * Globals

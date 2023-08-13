@@ -1745,9 +1745,9 @@ void ModeDecisionPreFetchRef(
                 for (counter = 0; counter < puHeight; counter++)
                 {
                     char const* p0 = (char const*)(src0Ptr + counter*refPicList0->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                     char const* p1 = (char const*)(src0Ptr + counter*refPicList0->strideY + (puWidth >> 1));
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
             }
             if ((candidateBuffer->candidatePtr->predictionDirection[0] == UNI_PRED_LIST_1) || (candidateBuffer->candidatePtr->predictionDirection[0] == BI_PRED))
@@ -1790,9 +1790,9 @@ void ModeDecisionPreFetchRef(
                 for (counter = 0; counter < puHeight; counter++)
                 {
                     char const* p0 = (char const*)(src1Ptr + counter*refPicList1->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                     char const* p1 = (char const*)(src1Ptr + counter*refPicList1->strideY + (puWidth >> 1));
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
             }
 
@@ -1848,7 +1848,7 @@ void ModeDecisionPreFetchRef(
                 for (counter = 0; counter < puHeight; counter++)
                 {
                     char const* p0 = (char const*)(src0Ptr + counter*refPicList0->strideY);
-                    _mm_prefetch(p0, _MM_HINT_T2);
+                    simde_mm_prefetch(p0, _MM_HINT_T2);
                 }
 
             }
@@ -1899,7 +1899,7 @@ void ModeDecisionPreFetchRef(
                 for (counter = 0; counter < puHeight; counter++)
                 {
                     char const* p1 = (char const*)(src1Ptr + counter*refPicList1->strideY);
-                    _mm_prefetch(p1, _MM_HINT_T2);
+                    simde_mm_prefetch(p1, _MM_HINT_T2);
                 }
 
             }

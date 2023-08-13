@@ -225,7 +225,7 @@ typedef struct EB_PARAM_PORTDEFINITIONTYPE {
 * THIS NEEDS TO STAY IN A HEADER FOR BEST PERFORMANCE
 ********************************************************************************************/
 
-#include <immintrin.h>
+#include "../../../simde/simde/x86/avx2.h"
 
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 __attribute__((optimize("unroll-loops")))
@@ -241,13 +241,13 @@ FORCE_INLINE void eb_memcpy_small(void* dst_ptr, void const* src_ptr, size_t siz
 #endif
     while ((i + 16) <= size)
     {
-        _mm_storeu_ps((float*)(dst + i), _mm_loadu_ps((const float*)(src + i)));
+        simde_mm_storeu_ps((float*)(dst + i), simde_mm_loadu_ps((const float*)(src + i)));
         i += 16;
     }
 
     if ((i + 8) <= size)
     {
-        _mm_store_sd((double*)(dst + i), _mm_load_sd((const double*)(src + i)));
+        simde_mm_store_sd((double*)(dst + i), simde_mm_load_sd((const double*)(src + i)));
         i += 8;
     }
 
@@ -278,15 +278,15 @@ FORCE_INLINE void eb_memcpy_SSE(void* dst_ptr, void const* src_ptr, size_t size)
     for (i = 0; i < cline_cnt; i += 64)
     {
 
-        __m128 c0 = _mm_loadu_ps((const float*)(src + i));
-        __m128 c1 = _mm_loadu_ps((const float*)(src + i + sizeof(c0)));
-        __m128 c2 = _mm_loadu_ps((const float*)(src + i + sizeof(c0) * 2));
-        __m128 c3 = _mm_loadu_ps((const float*)(src + i + sizeof(c0) * 3));
+        simde__m128 c0 = simde_mm_loadu_ps((const float*)(src + i));
+        simde__m128 c1 = simde_mm_loadu_ps((const float*)(src + i + sizeof(c0)));
+        simde__m128 c2 = simde_mm_loadu_ps((const float*)(src + i + sizeof(c0) * 2));
+        simde__m128 c3 = simde_mm_loadu_ps((const float*)(src + i + sizeof(c0) * 3));
 
-        _mm_storeu_ps((float*)(dst + i), c0);
-        _mm_storeu_ps((float*)(dst + i + sizeof(c0)), c1);
-        _mm_storeu_ps((float*)(dst + i + sizeof(c0) * 2), c2);
-        _mm_storeu_ps((float*)(dst + i + sizeof(c0) * 3), c3);
+        simde_mm_storeu_ps((float*)(dst + i), c0);
+        simde_mm_storeu_ps((float*)(dst + i + sizeof(c0)), c1);
+        simde_mm_storeu_ps((float*)(dst + i + sizeof(c0) * 2), c2);
+        simde_mm_storeu_ps((float*)(dst + i + sizeof(c0) * 3), c3);
 
     }
 

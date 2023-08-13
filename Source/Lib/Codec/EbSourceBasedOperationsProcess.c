@@ -441,7 +441,7 @@ static void GrassSkinLcu(
     LcuParams_t *lcuParams = &sequenceControlSetPtr->lcuParamsArray[lcuIndex];
 	LcuStat_t *lcuStatPtr = &(pictureControlSetPtr->lcuStatArray[lcuIndex]);
 
-	_mm_prefetch((const char*)lcuStatPtr, _MM_HINT_T0);
+	simde_mm_prefetch((const char*)lcuStatPtr, _MM_HINT_T0);
 
 	lcuGrassFlag = EB_FALSE;
 	grassLcuInrange = 0;
@@ -1440,13 +1440,13 @@ void* SourceBasedOperationsKernel(void *inputPtr)
             EB_BOOL isCompleteLcu = lcuParams->isCompleteLcu;
 			EB_U8  *yMeanPtr = pictureControlSetPtr->yMean[lcuIndex];
 
-			_mm_prefetch((const char*)yMeanPtr, _MM_HINT_T0);
+			simde_mm_prefetch((const char*)yMeanPtr, _MM_HINT_T0);
 
 			EB_U8  *crMeanPtr = pictureControlSetPtr->crMean[lcuIndex];
 			EB_U8  *cbMeanPtr = pictureControlSetPtr->cbMean[lcuIndex];
 
-			_mm_prefetch((const char*)crMeanPtr, _MM_HINT_T0);
-			_mm_prefetch((const char*)cbMeanPtr, _MM_HINT_T0);
+			simde_mm_prefetch((const char*)crMeanPtr, _MM_HINT_T0);
+			simde_mm_prefetch((const char*)cbMeanPtr, _MM_HINT_T0);
 
 			contextPtr->yMeanPtr = yMeanPtr;
 			contextPtr->crMeanPtr = crMeanPtr;
